@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Input } from "../common/Input";
+import { DateInput } from "../common/DateInput";
 import { Textarea } from "../common/Textarea";
 import { Button } from "../common/Button";
 import { slugify } from "../../utils/slugify";
@@ -23,6 +24,10 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
   const [basePrice, setBasePrice] = useState(initialValues?.base_price ?? "");
   const [allowsHourly, setAllowsHourly] = useState(initialValues?.allows_hourly ?? false);
   const [hourlyPrice, setHourlyPrice] = useState(initialValues?.hourly_price ?? "");
+  const [onPromotion, setOnPromotion] = useState(initialValues?.on_promotion ?? false);
+  const [promoPrice, setPromoPrice] = useState(initialValues?.promo_price ?? "");
+  const [promoStartsAt, setPromoStartsAt] = useState(initialValues?.promo_starts_at ?? "");
+  const [promoEndsAt, setPromoEndsAt] = useState(initialValues?.promo_ends_at ?? "");
   const [featured, setFeatured] = useState(initialValues?.featured ?? false);
   const [active, setActive] = useState(initialValues?.active ?? true);
   const [images, setImages] = useState(
@@ -65,6 +70,16 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
         newErrors.hourlyPrice = "Ingresa un precio por hora válido.";
       }
     }
+    if (onPromotion) {
+      if (promoPrice === "" || Number.isNaN(Number(promoPrice)) || Number(promoPrice) <= 0) {
+        newErrors.promoPrice = "Ingresa un precio de oferta válido.";
+      } else if (basePrice !== "" && Number(promoPrice) >= Number(basePrice)) {
+        newErrors.promoPrice = "El precio de oferta debe ser menor al precio por noche.";
+      }
+      if (promoStartsAt && promoEndsAt && promoEndsAt < promoStartsAt) {
+        newErrors.promoEndsAt = "La fecha de fin debe ser posterior a la de inicio.";
+      }
+    }
     return newErrors;
   }
 
@@ -83,6 +98,10 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
       base_price: Number(basePrice),
       allows_hourly: allowsHourly,
       hourly_price: allowsHourly ? Number(hourlyPrice) : null,
+      on_promotion: onPromotion,
+      promo_price: onPromotion ? Number(promoPrice) : null,
+      promo_starts_at: onPromotion && promoStartsAt ? promoStartsAt : null,
+      promo_ends_at: onPromotion && promoEndsAt ? promoEndsAt : null,
       featured,
       active,
     };
@@ -182,6 +201,54 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
             className="mt-3 max-w-xs"
             required
           />
+        )}
+      </div>
+
+      <div className="rounded-lg border border-slate-200 p-4">
+        <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+          <input
+            type="checkbox"
+            checked={onPromotion}
+            onChange={(e) => setOnPromotion(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          En promoción
+        </label>
+
+        {onPromotion && (
+          <div className="mt-3 space-y-3">
+            <Input
+              id="room-type-promo-price"
+              type="number"
+              min={0}
+              step="0.01"
+              label="Precio de oferta"
+              value={promoPrice}
+              onChange={(e) => setPromoPrice(e.target.value)}
+              error={errors.promoPrice}
+              hint="Debe ser menor al precio por noche."
+              className="max-w-xs"
+              required
+            />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:max-w-md">
+              <DateInput
+                id="room-type-promo-starts"
+                label="Desde (opcional)"
+                value={promoStartsAt}
+                onChange={(e) => setPromoStartsAt(e.target.value)}
+                hint="Vacío = ya empezó"
+              />
+              <DateInput
+                id="room-type-promo-ends"
+                label="Hasta (opcional)"
+                value={promoEndsAt}
+                min={promoStartsAt || undefined}
+                onChange={(e) => setPromoEndsAt(e.target.value)}
+                error={errors.promoEndsAt}
+                hint="Vacío = no vence"
+              />
+            </div>
+          </div>
         )}
       </div>
 

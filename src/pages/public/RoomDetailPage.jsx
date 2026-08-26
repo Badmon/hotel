@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { fetchRoomTypeBySlug } from "../../services/roomsService";
 import { siteConfig } from "../../config/siteConfig";
 import { formatCurrency } from "../../utils/currency";
+import { isPromotionActive } from "../../utils/promotions";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
@@ -48,6 +49,7 @@ export function RoomDetailPage() {
 
   const images = roomType.room_images.length > 0 ? roomType.room_images : [{ image_url: siteConfig.images.placeholderRoom, alt_text: roomType.name }];
   const reserveQuery = searchParams.toString();
+  const onPromotion = isPromotionActive(roomType);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -87,10 +89,23 @@ export function RoomDetailPage() {
         </div>
 
         <aside className="h-fit rounded-xl border border-slate-200 p-5 shadow-sm">
+          {onPromotion && (
+            <span className="mb-2 inline-block rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
+              Oferta por tiempo limitado
+            </span>
+          )}
           <p className="text-sm text-slate-500">Precio referencial</p>
-          <p className="text-2xl font-bold text-slate-900">
-            {formatCurrency(roomType.base_price)} <span className="text-sm font-normal text-slate-500">/ noche</span>
-          </p>
+          {onPromotion ? (
+            <p className="flex items-baseline gap-2">
+              <span className="text-base text-slate-400 line-through">{formatCurrency(roomType.base_price)}</span>
+              <span className="text-2xl font-bold text-amber-700">{formatCurrency(roomType.promo_price)}</span>
+              <span className="text-sm font-normal text-slate-500">/ noche</span>
+            </p>
+          ) : (
+            <p className="text-2xl font-bold text-slate-900">
+              {formatCurrency(roomType.base_price)} <span className="text-sm font-normal text-slate-500">/ noche</span>
+            </p>
+          )}
           {roomType.allows_hourly && (
             <p className="mt-1 text-base font-semibold text-slate-700">
               {formatCurrency(roomType.hourly_price)} <span className="text-sm font-normal text-slate-500">/ hora</span>

@@ -7,7 +7,8 @@ import { supabase } from "../lib/supabaseClient";
  */
 
 const ROOM_TYPE_COLUMNS = `id, name, slug, short_description, description, capacity, base_price,
-  allows_hourly, hourly_price, featured, active`;
+  allows_hourly, hourly_price, featured, active,
+  on_promotion, promo_price, promo_starts_at, promo_ends_at`;
 
 export async function fetchActiveRoomTypesWithImages() {
   const { data, error } = await supabase

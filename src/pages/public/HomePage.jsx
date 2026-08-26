@@ -3,6 +3,7 @@ import { Hero } from "../../components/public/Hero";
 import { AvailabilitySearch } from "../../components/public/AvailabilitySearch";
 import { RoomCard } from "../../components/public/RoomCard";
 import { HourlyRoomCard } from "../../components/public/HourlyRoomCard";
+import { PromotionRoomCard } from "../../components/public/PromotionRoomCard";
 import { ServicesList } from "../../components/public/ServicesList";
 import { LocationSection } from "../../components/public/LocationSection";
 import { ContactSection } from "../../components/public/ContactSection";
@@ -11,6 +12,7 @@ import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { useRooms } from "../../hooks/useRooms";
 import { siteConfig } from "../../config/siteConfig";
 import { BOOKING_MODE } from "../../constants/bookingMode";
+import { isPromotionActive } from "../../utils/promotions";
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ export function HomePage() {
   const featuredRoomTypes = roomTypes.filter((room) => room.featured).slice(0, 3);
   const nightlyRoomsToShow = featuredRoomTypes.length > 0 ? featuredRoomTypes : roomTypes.slice(0, 3);
   const hourlyRoomsToShow = roomTypes.filter((room) => room.allows_hourly).slice(0, 3);
+  const promotedRoomsToShow = roomTypes.filter(isPromotionActive).slice(0, 3);
 
   function handleSearch(criteria) {
     const params =
@@ -47,6 +50,21 @@ export function HomePage() {
       <section id="buscar-disponibilidad" className="mx-auto -mt-2 max-w-5xl px-4">
         <AvailabilitySearch onSubmit={handleSearch} />
       </section>
+
+      {status === "success" && promotedRoomsToShow.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pt-16">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">Promociones</h2>
+            <p className="mt-2 text-slate-600">Ofertas por tiempo limitado en habitaciones seleccionadas.</p>
+          </div>
+
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {promotedRoomsToShow.map((roomType) => (
+              <PromotionRoomCard key={roomType.id} roomType={roomType} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-6xl px-4 py-16">
         <div>

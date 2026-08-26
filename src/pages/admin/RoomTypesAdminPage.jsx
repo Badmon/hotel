@@ -14,6 +14,7 @@ import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
 import { formatCurrency } from "../../utils/currency";
+import { isPromotionActive } from "../../utils/promotions";
 import { siteConfig } from "../../config/siteConfig";
 
 export function RoomTypesAdminPage() {
@@ -117,11 +118,23 @@ export function RoomTypesAdminPage() {
                   {!roomType.active && <Badge className="bg-slate-200 text-slate-600">Inactiva</Badge>}
                   {roomType.featured && <Badge className="bg-amber-100 text-amber-800">Destacada</Badge>}
                   {roomType.allows_hourly && <Badge className="bg-violet-100 text-violet-800">Por horas</Badge>}
+                  {roomType.on_promotion && (
+                    <Badge className={isPromotionActive(roomType) ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-600"}>
+                      {isPromotionActive(roomType) ? "Promoción vigente" : "Promoción programada"}
+                    </Badge>
+                  )}
                 </div>
                 <p className="mt-1 line-clamp-2 flex-1 text-sm text-slate-600">{roomType.short_description}</p>
                 <div className="mt-3 text-sm text-slate-500">
                   <p>Hasta {roomType.capacity} huéspedes</p>
-                  <p className="font-semibold text-slate-900">{formatCurrency(roomType.base_price)} / noche</p>
+                  {roomType.on_promotion ? (
+                    <p>
+                      <span className="mr-2 line-through">{formatCurrency(roomType.base_price)}</span>
+                      <span className="font-semibold text-emerald-700">{formatCurrency(roomType.promo_price)} / noche</span>
+                    </p>
+                  ) : (
+                    <p className="font-semibold text-slate-900">{formatCurrency(roomType.base_price)} / noche</p>
+                  )}
                   {roomType.allows_hourly && (
                     <p className="font-semibold text-violet-700">{formatCurrency(roomType.hourly_price)} / hora</p>
                   )}

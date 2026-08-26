@@ -3,12 +3,14 @@ import { useSearchParams } from "react-router-dom";
 import { AvailabilitySearch } from "../../components/public/AvailabilitySearch";
 import { RoomCard } from "../../components/public/RoomCard";
 import { HourlyRoomCard } from "../../components/public/HourlyRoomCard";
+import { PromotionRoomCard } from "../../components/public/PromotionRoomCard";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
 import { useAvailability } from "../../hooks/useAvailability";
 import { useRooms } from "../../hooks/useRooms";
 import { BOOKING_MODE } from "../../constants/bookingMode";
+import { isPromotionActive } from "../../utils/promotions";
 
 export function RoomsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -135,6 +137,7 @@ export function RoomsPage() {
 
 function RoomsCatalog({ roomTypes }) {
   const hourlyRoomTypes = roomTypes.filter((room) => room.allows_hourly);
+  const promotedRoomTypes = roomTypes.filter(isPromotionActive);
 
   if (roomTypes.length === 0) {
     return <EmptyState title="Todavía no hay habitaciones publicadas" />;
@@ -142,6 +145,17 @@ function RoomsCatalog({ roomTypes }) {
 
   return (
     <div className="space-y-14">
+      {promotedRoomTypes.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900">Promociones</h2>
+          <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {promotedRoomTypes.map((roomType) => (
+              <PromotionRoomCard key={roomType.id} roomType={roomType} />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div>
         <h2 className="text-xl font-semibold text-slate-900">Por noche</h2>
         <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

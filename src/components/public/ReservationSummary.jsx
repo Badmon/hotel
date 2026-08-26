@@ -1,9 +1,12 @@
 import { formatCurrency } from "../../utils/currency";
 import { formatDateDisplay, calculateNights, formatDateTimeDisplay, calculateHours } from "../../utils/dates";
+import { isPromotionActive } from "../../utils/promotions";
 import { BOOKING_MODE } from "../../constants/bookingMode";
 
 export function ReservationSummary({ roomType, bookingMode, checkInDate, checkOutDate, checkInAt, checkOutAt, guestCount }) {
   const isHourly = bookingMode === BOOKING_MODE.HOURLY;
+  const onPromotion = !isHourly && isPromotionActive(roomType);
+  const nightlyRate = onPromotion ? roomType.promo_price : roomType?.base_price;
 
   const nights = isHourly ? null : calculateNights(checkInDate, checkOutDate);
   const hours = isHourly ? calculateHours(checkInAt, checkOutAt) : null;
@@ -12,8 +15,8 @@ export function ReservationSummary({ roomType, bookingMode, checkInDate, checkOu
     ? roomType?.hourly_price
       ? roomType.hourly_price * hours
       : null
-    : roomType?.base_price
-      ? roomType.base_price * nights
+    : nightlyRate
+      ? nightlyRate * nights
       : null;
 
   return (
@@ -38,7 +41,10 @@ export function ReservationSummary({ roomType, bookingMode, checkInDate, checkOu
         )}
         <Row label="Huéspedes" value={guestCount} />
         {referencePrice !== null && (
-          <Row label="Precio referencial" value={formatCurrency(referencePrice)} />
+          <Row
+            label={onPromotion ? "Precio referencial (con oferta)" : "Precio referencial"}
+            value={formatCurrency(referencePrice)}
+          />
         )}
       </dl>
       <p className="mt-4 text-xs leading-relaxed text-slate-500">
