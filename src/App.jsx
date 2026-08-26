@@ -15,6 +15,7 @@ import { DashboardPage } from "./pages/admin/DashboardPage";
 import { ReservationsListPage } from "./pages/admin/ReservationsListPage";
 import { ReservationDetailPage } from "./pages/admin/ReservationDetailPage";
 import { RoomsAdminPage } from "./pages/admin/RoomsAdminPage";
+import { RoomTypesAdminPage } from "./pages/admin/RoomTypesAdminPage";
 import { CalendarPage } from "./pages/admin/CalendarPage";
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
             <Route index element={<DashboardPage />} />
             <Route path="reservations" element={<ReservationsListPage />} />
             <Route path="reservations/:id" element={<ReservationDetailPage />} />
+            <Route path="room-types" element={<RoomTypesAdminPage />} />
             <Route path="rooms" element={<RoomsAdminPage />} />
             <Route path="calendar" element={<CalendarPage />} />
           </Route>

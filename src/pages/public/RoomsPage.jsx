@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AvailabilitySearch } from "../../components/public/AvailabilitySearch";
 import { RoomCard } from "../../components/public/RoomCard";
+import { HourlyRoomCard } from "../../components/public/HourlyRoomCard";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
@@ -71,8 +72,14 @@ export function RoomsPage() {
 
   const isSearchMode = Boolean(initialCriteria);
   const bookingMode = initialCriteria?.bookingMode ?? BOOKING_MODE.NIGHTLY;
-  const roomsToRender = isSearchMode ? availability.results : allRooms.roomTypes;
-  const isLoading = isSearchMode ? availability.status === "loading" : allRooms.status === "loading";
+  const isHourlySearch = isSearchMode && bookingMode === BOOKING_MODE.HOURLY;
+
+  // "idle" cuenta como cargando cuando hay criterios en la URL: el
+  // useEffect todavía no disparó la búsqueda en el primer render, y
+  // availability.results sigue siendo null en ese instante.
+  const isLoading = isSearchMode
+    ? availability.status === "loading" || availability.status === "idle"
+    : allRooms.status === "loading";
   const hasError = isSearchMode ? availability.status === "error" : allRooms.status === "error";
   const isEmpty = isSearchMode ? availability.status === "empty" : allRooms.status === "empty";
 
@@ -92,27 +99,68 @@ export function RoomsPage() {
         {hasError && <ErrorMessage message={availability.error || "No fue posible cargar las habitaciones."} />}
         {isEmpty && (
           <EmptyState
-            title="No hay habitaciones disponibles para esas fechas"
-            description="Prueba con otras fechas o reduce la cantidad de huéspedes."
+            title="No hay habitaciones disponibles para ese horario"
+            description="Prueba con otra fecha, hora o reduce la cantidad de huéspedes."
           />
         )}
-        {!isLoading && !hasError && !isEmpty && roomsToRender?.length > 0 && (
+
+        {!isLoading && !hasError && !isEmpty && isSearchMode && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {roomsToRender.map((roomType) => (
-              <RoomCard
-                key={roomType.id}
-                roomType={roomType}
-                bookingMode={bookingMode}
-                reservationHref={
-                  isSearchMode
-                    ? `/habitaciones/${roomType.slug}/reservar?${searchParams.toString()}`
-                    : undefined
-                }
-              />
-            ))}
+            {(availability.results ?? []).map((roomType) =>
+              isHourlySearch ? (
+                <HourlyRoomCard
+                  key={roomType.id}
+                  roomType={roomType}
+                  reservationHref={`/habitaciones/${roomType.slug}/reservar?${searchParams.toString()}`}
+                />
+              ) : (
+                <RoomCard
+                  key={roomType.id}
+                  roomType={roomType}
+                  reservationHref={`/habitaciones/${roomType.slug}/reservar?${searchParams.toString()}`}
+                />
+              )
+            )}
           </div>
         )}
+
+        {/* Sin búsqueda activa: catálogo completo, separado por modalidad. */}
+        {!isLoading && !hasError && !isSearchMode && (
+          <RoomsCatalog roomTypes={allRooms.roomTypes} />
+        )}
       </div>
+    </div>
+  );
+}
+
+function RoomsCatalog({ roomTypes }) {
+  const hourlyRoomTypes = roomTypes.filter((room) => room.allows_hourly);
+
+  if (roomTypes.length === 0) {
+    return <EmptyState title="Todavía no hay habitaciones publicadas" />;
+  }
+
+  return (
+    <div className="space-y-14">
+      <div>
+        <h2 className="text-xl font-semibold text-slate-900">Por noche</h2>
+        <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {roomTypes.map((roomType) => (
+            <RoomCard key={roomType.id} roomType={roomType} />
+          ))}
+        </div>
+      </div>
+
+      {hourlyRoomTypes.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900">Por horas</h2>
+          <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {hourlyRoomTypes.map((roomType) => (
+              <HourlyRoomCard key={roomType.id} roomType={roomType} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

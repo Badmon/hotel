@@ -7,7 +7,7 @@ import { supabase } from "../lib/supabaseClient";
  */
 
 const ROOM_TYPE_COLUMNS = `id, name, slug, short_description, description, capacity, base_price,
-  allows_hourly, hourly_price, featured`;
+  allows_hourly, hourly_price, featured, active`;
 
 export async function fetchActiveRoomTypesWithImages() {
   const { data, error } = await supabase
@@ -139,4 +139,89 @@ export async function updateRoomStatus(roomId, status) {
 
   if (error) throw error;
   return data;
+}
+
+export async function createRoom({ roomNumber, roomTypeId, floor }) {
+  const { data, error } = await supabase
+    .from("rooms")
+    .insert({ room_number: roomNumber, room_type_id: roomTypeId, floor: floor || null })
+    .select(`id, room_number, floor, status, notes, room_type_id, room_types ( id, name )`)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteRoom(roomId) {
+  const { error } = await supabase.from("rooms").delete().eq("id", roomId);
+  if (error) throw translateDeleteError(error, "habitación");
+}
+
+/**
+ * Todos los tipos de habitación para el panel administrativo, incluidos
+ * los inactivos (a diferencia de fetchActiveRoomTypesWithImages, que
+ * solo trae los visibles al público).
+ */
+export async function fetchAllRoomTypesForAdmin() {
+  const { data, error } = await supabase
+    .from("room_types")
+    .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order )`)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+
+  return (data ?? []).map((roomType) => ({
+    ...roomType,
+    room_images: [...(roomType.room_images ?? [])].sort((a, b) => a.display_order - b.display_order),
+  }));
+}
+
+export async function createRoomType(roomType, images) {
+  const { data, error } = await supabase.from("room_types").insert(roomType).select().single();
+  if (error) throw error;
+  await replaceRoomImages(data.id, images);
+  return data;
+}
+
+export async function updateRoomType(id, roomType, images) {
+  const { error } = await supabase.from("room_types").update(roomType).eq("id", id);
+  if (error) throw error;
+  await replaceRoomImages(id, images);
+}
+
+export async function deleteRoomType(id) {
+  const { error } = await supabase.from("room_types").delete().eq("id", id);
+  if (error) throw translateDeleteError(error, "tipo de habitación");
+}
+
+/**
+ * Reemplaza por completo las imágenes de un tipo de habitación. Más
+ * simple y suficiente para este panel que llevar un diff fila por
+ * fila: la cantidad de imágenes por tipo siempre es pequeña.
+ */
+async function replaceRoomImages(roomTypeId, images) {
+  const { error: deleteError } = await supabase.from("room_images").delete().eq("room_type_id", roomTypeId);
+  if (deleteError) throw deleteError;
+
+  if (!images || images.length === 0) return;
+
+  const rows = images.map((image, index) => ({
+    room_type_id: roomTypeId,
+    image_url: image.image_url,
+    alt_text: image.alt_text || null,
+    display_order: index,
+  }));
+
+  const { error: insertError } = await supabase.from("room_images").insert(rows);
+  if (insertError) throw insertError;
+}
+
+/** Traduce el error de FK (23503) que Postgres lanza al borrar un registro todavía referenciado. */
+function translateDeleteError(error, entityLabel) {
+  if (error.code === "23503") {
+    return new Error(
+      `No se puede eliminar: este ${entityLabel} todavía tiene registros asociados (reservas u otras habitaciones). Desactívalo en su lugar.`
+    );
+  }
+  return error;
 }

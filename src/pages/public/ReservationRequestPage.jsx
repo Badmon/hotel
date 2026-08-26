@@ -61,6 +61,7 @@ export function ReservationRequestPage() {
 
   function handleFormSubmit(values) {
     setFormValues(values);
+    setSubmitError(null);
     setStep("review");
   }
 

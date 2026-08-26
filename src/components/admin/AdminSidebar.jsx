@@ -4,7 +4,8 @@ import { siteConfig } from "../../config/siteConfig";
 const LINKS = [
   { to: "/admin", label: "Dashboard", end: true },
   { to: "/admin/reservations", label: "Reservas" },
-  { to: "/admin/rooms", label: "Habitaciones" },
+  { to: "/admin/room-types", label: "Tipos de habitación" },
+  { to: "/admin/rooms", label: "Estado de habitaciones" },
   { to: "/admin/calendar", label: "Calendario" },
 ];
 
