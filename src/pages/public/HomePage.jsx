@@ -44,7 +44,7 @@ export function HomePage() {
     <>
       <Hero />
 
-      <section id="buscar-disponibilidad" className="mx-auto -mt-6 max-w-5xl px-4">
+      <section id="buscar-disponibilidad" className="mx-auto -mt-2 max-w-5xl px-4">
         <AvailabilitySearch onSubmit={handleSearch} />
       </section>
 

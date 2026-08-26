@@ -67,7 +67,7 @@ export function AvailabilitySearch({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-5 shadow-md">
+    <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-5 pt-6 shadow-md sm:p-6 sm:pt-7">
       {allowHourly && (
         <div className="mb-4 inline-flex rounded-lg bg-slate-100 p-1">
           {Object.values(BOOKING_MODE).map((mode) => (
