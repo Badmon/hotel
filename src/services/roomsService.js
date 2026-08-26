@@ -1,0 +1,115 @@
+import { supabase } from "../lib/supabaseClient";
+
+/**
+ * Capa de acceso a datos de tipos de habitación, habitaciones e
+ * imágenes. Los componentes no deben llamar a `supabase` directamente:
+ * pasan siempre por estas funciones.
+ */
+
+export async function fetchActiveRoomTypesWithImages() {
+  const { data, error } = await supabase
+    .from("room_types")
+    .select(
+      `id, name, slug, short_description, description, capacity, base_price, featured,
+       room_images ( id, image_url, alt_text, display_order )`
+    )
+    .eq("active", true)
+    .order("featured", { ascending: false })
+    .order("base_price", { ascending: true });
+
+  if (error) throw error;
+
+  return (data ?? []).map((roomType) => ({
+    ...roomType,
+    room_images: [...(roomType.room_images ?? [])].sort(
+      (a, b) => a.display_order - b.display_order
+    ),
+  }));
+}
+
+export async function fetchRoomTypeBySlug(slug) {
+  const { data, error } = await supabase
+    .from("room_types")
+    .select(
+      `id, name, slug, short_description, description, capacity, base_price, featured,
+       room_images ( id, image_url, alt_text, display_order )`
+    )
+    .eq("slug", slug)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  return {
+    ...data,
+    room_images: [...(data.room_images ?? [])].sort(
+      (a, b) => a.display_order - b.display_order
+    ),
+  };
+}
+
+/**
+ * Consulta tipos de habitación con disponibilidad vía la función SQL
+ * `search_available_rooms`, que es SECURITY DEFINER: expone solamente
+ * datos públicos, nunca reservas de otros huéspedes. Un tipo aparece en
+ * el resultado si tiene al menos una habitación física disponible para
+ * el rango de fechas indicado.
+ *
+ * La asignación de la habitación física concreta ocurre recién al
+ * crear la reserva (ver reservationsService.createReservation), donde
+ * se vuelve a validar disponibilidad de forma atómica en el servidor.
+ */
+export async function searchAvailableRoomTypes({ checkInDate, checkOutDate, guestCount }) {
+  const { data, error } = await supabase.rpc("search_available_rooms", {
+    p_check_in: checkInDate,
+    p_check_out: checkOutDate,
+    p_guests: guestCount,
+  });
+
+  if (error) throw error;
+  const availableTypes = data ?? [];
+  if (availableTypes.length === 0) return [];
+
+  const typeIds = availableTypes.map((type) => type.room_type_id);
+  const { data: images, error: imagesError } = await supabase
+    .from("room_images")
+    .select("id, room_type_id, image_url, alt_text, display_order")
+    .in("room_type_id", typeIds)
+    .order("display_order", { ascending: true });
+
+  if (imagesError) throw imagesError;
+
+  return availableTypes.map((type) => ({
+    id: type.room_type_id,
+    name: type.name,
+    slug: type.slug,
+    short_description: type.short_description,
+    capacity: type.capacity,
+    base_price: type.base_price,
+    room_images: (images ?? []).filter((image) => image.room_type_id === type.room_type_id),
+  }));
+}
+
+/** Todas las habitaciones físicas (uso administrativo). */
+export async function fetchAllRooms() {
+  const { data, error } = await supabase
+    .from("rooms")
+    .select(`id, room_number, floor, status, notes, room_type_id, room_types ( id, name )`)
+    .order("room_number", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function updateRoomStatus(roomId, status) {
+  const { data, error } = await supabase
+    .from("rooms")
+    .update({ status })
+    .eq("id", roomId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}

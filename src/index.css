@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/**
+ * Identidad visual del sitio. Estos valores reflejan
+ * src/config/siteConfig.js (bloque `colors`) — si cambias uno, cambia
+ * el otro para mantenerlos sincronizados.
+ */
+:root {
+  --color-primary: #0f766e;
+  --color-primary-dark: #0b5a54;
+  --color-secondary: #1e293b;
+  --color-accent: #f59e0b;
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+}
+
+body {
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
