@@ -7,6 +7,7 @@ import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
 import { useAvailability } from "../../hooks/useAvailability";
 import { useRooms } from "../../hooks/useRooms";
+import { BOOKING_MODE } from "../../constants/bookingMode";
 
 export function RoomsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -14,11 +15,32 @@ export function RoomsPage() {
   const allRooms = useRooms();
 
   const initialCriteria = useMemo(() => {
-    const checkIn = searchParams.get("checkIn");
-    const checkOut = searchParams.get("checkOut");
+    const mode = searchParams.get("mode") === BOOKING_MODE.HOURLY ? BOOKING_MODE.HOURLY : BOOKING_MODE.NIGHTLY;
     const guests = searchParams.get("guests");
-    if (!checkIn || !checkOut || !guests) return null;
-    return { checkInDate: checkIn, checkOutDate: checkOut, guestCount: Number(guests) };
+    const checkIn = searchParams.get("checkIn");
+    if (!checkIn || !guests) return null;
+
+    if (mode === BOOKING_MODE.HOURLY) {
+      const startTime = searchParams.get("startTime");
+      const durationHours = searchParams.get("duration");
+      if (!startTime || !durationHours) return null;
+      return {
+        bookingMode: BOOKING_MODE.HOURLY,
+        checkInDate: checkIn,
+        startTime,
+        durationHours: Number(durationHours),
+        guestCount: Number(guests),
+      };
+    }
+
+    const checkOut = searchParams.get("checkOut");
+    if (!checkOut) return null;
+    return {
+      bookingMode: BOOKING_MODE.NIGHTLY,
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      guestCount: Number(guests),
+    };
   }, [searchParams]);
 
   useEffect(() => {
@@ -27,15 +49,28 @@ export function RoomsPage() {
   }, [initialCriteria]);
 
   function handleSearch(criteria) {
-    setSearchParams({
-      checkIn: criteria.checkInDate,
-      checkOut: criteria.checkOutDate,
-      guests: String(criteria.guestCount),
-    });
+    const params =
+      criteria.bookingMode === BOOKING_MODE.HOURLY
+        ? {
+            mode: BOOKING_MODE.HOURLY,
+            checkIn: criteria.checkInDate,
+            startTime: criteria.startTime,
+            duration: String(criteria.durationHours),
+            guests: String(criteria.guestCount),
+          }
+        : {
+            mode: BOOKING_MODE.NIGHTLY,
+            checkIn: criteria.checkInDate,
+            checkOut: criteria.checkOutDate,
+            guests: String(criteria.guestCount),
+          };
+
+    setSearchParams(params);
     availability.search(criteria);
   }
 
   const isSearchMode = Boolean(initialCriteria);
+  const bookingMode = initialCriteria?.bookingMode ?? BOOKING_MODE.NIGHTLY;
   const roomsToRender = isSearchMode ? availability.results : allRooms.roomTypes;
   const isLoading = isSearchMode ? availability.status === "loading" : allRooms.status === "loading";
   const hasError = isSearchMode ? availability.status === "error" : allRooms.status === "error";
@@ -67,9 +102,10 @@ export function RoomsPage() {
               <RoomCard
                 key={roomType.id}
                 roomType={roomType}
+                bookingMode={bookingMode}
                 reservationHref={
                   isSearchMode
-                    ? `/habitaciones/${roomType.slug}/reservar?checkIn=${initialCriteria.checkInDate}&checkOut=${initialCriteria.checkOutDate}&guests=${initialCriteria.guestCount}`
+                    ? `/habitaciones/${roomType.slug}/reservar?${searchParams.toString()}`
                     : undefined
                 }
               />

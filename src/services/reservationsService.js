@@ -29,7 +29,7 @@ export async function fetchReservations({ status, search, fromDate, toDate } = {
     .from("reservations")
     .select(
       `id, reservation_code, guest_name, guest_email, guest_phone, guest_count,
-       check_in_date, check_out_date, status, created_at,
+       booking_mode, check_in_date, check_out_date, check_in_at, check_out_at, status, created_at,
        rooms ( id, room_number, room_types ( id, name ) )`
     )
     .order("created_at", { ascending: false });
@@ -52,7 +52,7 @@ export async function fetchReservationById(id) {
   const { data, error } = await supabase
     .from("reservations")
     .select(
-      `*, rooms ( id, room_number, floor, room_types ( id, name, capacity, base_price ) )`
+      `*, rooms ( id, room_number, floor, room_types ( id, name, capacity, base_price, hourly_price ) )`
     )
     .eq("id", id)
     .single();
@@ -120,7 +120,8 @@ export async function fetchReservationsByDateRange(fromDate, toDate) {
   const { data, error } = await supabase
     .from("reservations")
     .select(
-      `id, reservation_code, guest_name, check_in_date, check_out_date, status,
+      `id, reservation_code, guest_name, booking_mode, check_in_date, check_out_date,
+       check_in_at, check_out_at, status,
        rooms ( id, room_number, room_types ( name ) )`
     )
     .lte("check_in_date", toDate)

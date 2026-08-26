@@ -1,9 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getReservationStatusLabel } from "../../constants/reservationStatus";
-import { formatDateDisplay } from "../../utils/dates";
+import { formatDateDisplay, formatDateTimeDisplay } from "../../utils/dates";
 import { buildWhatsAppUrl, buildReservationWhatsAppMessage } from "../../utils/whatsapp";
 import { Button } from "../../components/common/Button";
 import { EmptyState } from "../../components/common/EmptyState";
+import { BOOKING_MODE } from "../../constants/bookingMode";
 
 export function ReservationSuccessPage() {
   const location = useLocation();
@@ -27,6 +28,7 @@ export function ReservationSuccessPage() {
   }
 
   const whatsappUrl = buildWhatsAppUrl(buildReservationWhatsAppMessage(reservation.reservation_code));
+  const isHourly = reservation.booking_mode === BOOKING_MODE.HOURLY;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16">
@@ -43,8 +45,17 @@ export function ReservationSuccessPage() {
       <dl className="mt-6 grid grid-cols-2 gap-4 rounded-xl border border-slate-200 p-5 text-sm">
         <Row label="Nombre" value={reservation.guest_name} />
         <Row label="Estado" value={getReservationStatusLabel(reservation.status)} />
-        <Row label="Entrada" value={formatDateDisplay(reservation.check_in_date)} />
-        <Row label="Salida" value={formatDateDisplay(reservation.check_out_date)} />
+        {isHourly ? (
+          <>
+            <Row label="Desde" value={formatDateTimeDisplay(reservation.check_in_at)} />
+            <Row label="Hasta" value={formatDateTimeDisplay(reservation.check_out_at)} />
+          </>
+        ) : (
+          <>
+            <Row label="Entrada" value={formatDateDisplay(reservation.check_in_date)} />
+            <Row label="Salida" value={formatDateDisplay(reservation.check_out_date)} />
+          </>
+        )}
       </dl>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">

@@ -11,11 +11,12 @@ import {
 } from "../../services/reservationsService";
 import { RESERVATION_ACTIONS_BY_STATUS } from "../../constants/reservationStatus";
 import { ReservationStatusBadge } from "../../components/admin/ReservationStatusBadge";
+import { BookingModeBadge } from "../../components/admin/BookingModeBadge";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { Button } from "../../components/common/Button";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
-import { formatDateDisplay } from "../../utils/dates";
+import { formatDateDisplay, formatDateTimeDisplay } from "../../utils/dates";
 
 const ACTIONS = {
   confirm: { label: "Confirmar", variant: "primary", run: confirmReservation, confirmText: "¿Confirmar esta reserva?" },
@@ -86,7 +87,10 @@ export function ReservationDetailPage() {
           <p className="font-mono text-sm text-slate-400">{reservation.reservation_code}</p>
           <h1 className="text-xl font-bold text-slate-900">{reservation.guest_name}</h1>
         </div>
-        <ReservationStatusBadge status={reservation.status} />
+        <div className="flex items-center gap-2">
+          <BookingModeBadge bookingMode={reservation.booking_mode} />
+          <ReservationStatusBadge status={reservation.status} />
+        </div>
       </div>
 
       {actionError && <ErrorMessage message={actionError} />}
@@ -121,8 +125,17 @@ export function ReservationDetailPage() {
           <Field label="Código" value={reservation.reservation_code} />
           <Field label="Habitación" value={`${reservation.rooms?.room_number ?? "—"} · ${reservation.rooms?.room_types?.name ?? ""}`} />
           <Field label="Huéspedes" value={reservation.guest_count} />
-          <Field label="Entrada" value={formatDateDisplay(reservation.check_in_date)} />
-          <Field label="Salida" value={formatDateDisplay(reservation.check_out_date)} />
+          {reservation.booking_mode === "hourly" ? (
+            <>
+              <Field label="Desde" value={formatDateTimeDisplay(reservation.check_in_at)} />
+              <Field label="Hasta" value={formatDateTimeDisplay(reservation.check_out_at)} />
+            </>
+          ) : (
+            <>
+              <Field label="Entrada" value={formatDateDisplay(reservation.check_in_date)} />
+              <Field label="Salida" value={formatDateDisplay(reservation.check_out_date)} />
+            </>
+          )}
         </dl>
       </section>
 

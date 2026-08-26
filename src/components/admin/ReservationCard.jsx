@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import { ReservationStatusBadge } from "./ReservationStatusBadge";
-import { formatDateDisplay } from "../../utils/dates";
+import { BookingModeBadge } from "./BookingModeBadge";
+import { formatDateDisplay, formatDateTimeDisplay } from "../../utils/dates";
 
 /** Vista de tarjeta para reservas en móvil, alternativa a la fila de tabla. */
 export function ReservationCard({ reservation }) {
+  const isHourly = reservation.booking_mode === "hourly";
+
   return (
     <Link
       to={`/admin/reservations/${reservation.id}`}
@@ -14,7 +17,10 @@ export function ReservationCard({ reservation }) {
           <p className="font-mono text-xs text-slate-400">{reservation.reservation_code}</p>
           <p className="font-semibold text-slate-900">{reservation.guest_name}</p>
         </div>
-        <ReservationStatusBadge status={reservation.status} />
+        <div className="flex flex-col items-end gap-1">
+          <ReservationStatusBadge status={reservation.status} />
+          <BookingModeBadge bookingMode={reservation.booking_mode} />
+        </div>
       </div>
       <dl className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600">
         <div>
@@ -27,11 +33,11 @@ export function ReservationCard({ reservation }) {
         </div>
         <div>
           <dt className="text-xs text-slate-400">Entrada</dt>
-          <dd>{formatDateDisplay(reservation.check_in_date)}</dd>
+          <dd>{isHourly ? formatDateTimeDisplay(reservation.check_in_at) : formatDateDisplay(reservation.check_in_date)}</dd>
         </div>
         <div>
           <dt className="text-xs text-slate-400">Salida</dt>
-          <dd>{formatDateDisplay(reservation.check_out_date)}</dd>
+          <dd>{isHourly ? formatDateTimeDisplay(reservation.check_out_at) : formatDateDisplay(reservation.check_out_date)}</dd>
         </div>
       </dl>
     </Link>

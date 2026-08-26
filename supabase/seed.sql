@@ -22,6 +22,16 @@ values
    4, 180.00, true, true)
 on conflict (id) do nothing;
 
+-- Matrimonial y Doble también se pueden reservar por horas; Familiar
+-- se deja solo para estadías por noche (caso típico: habitaciones
+-- grandes/familiares no suelen ofrecerse por horas). Fuera de un
+-- insert con ON CONFLICT porque estas dos columnas se agregaron en
+-- 0010_hourly_bookings.sql, después de que las filas ya existieran.
+update public.room_types set allows_hourly = true, hourly_price = 25.00
+  where id = '11111111-1111-1111-1111-111111111111'; -- Matrimonial
+update public.room_types set allows_hourly = true, hourly_price = 20.00
+  where id = '22222222-2222-2222-2222-222222222222'; -- Doble
+
 -- ─────────────────────────────────────────────────────────────
 -- Habitaciones físicas
 -- ─────────────────────────────────────────────────────────────

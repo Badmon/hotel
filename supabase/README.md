@@ -32,6 +32,8 @@ Abre **SQL Editor** en el dashboard y ejecuta, en orden, cada archivo de `migrat
 0006_reservations.sql
 0007_functions.sql
 0008_updated_at_triggers.sql
+0009_reservation_rejected_at.sql
+0010_hourly_bookings.sql
 ```
 
 Opción B — Supabase CLI:
@@ -72,3 +74,4 @@ Para dar de alta más personal, repite el paso 2 con `role = 'staff'` (o `'admin
 - **La creación de reservas** ocurre en `create_reservation_atomic`, una función `SECURITY DEFINER` a la que solo puede llamar `service_role` (la Netlify Function `create-reservation`). Nunca se inserta directamente desde el navegador.
 - **Los cambios de estado administrativos** (confirmar, check-in, check-out, etc.) son funciones RPC (`confirm_reservation`, `checkin_reservation`, ...) que validan el rol del usuario y la transición de estado permitida.
 - **La integridad de disponibilidad** está protegida en tres capas: la consulta de disponibilidad (`search_available_rooms`), la selección de habitación con `FOR UPDATE SKIP LOCKED` dentro de `create_reservation_atomic`/`confirm_reservation`, y finalmente el constraint `reservations_no_overlap` (`EXCLUDE USING gist`), que hace imposible a nivel de base de datos que dos reservas `confirmed`/`checked_in` se solapen para la misma habitación.
+- **Reservas "por noche" y "por horas"** conviven en la misma tabla (`reservations.booking_mode`). `check_in_date`/`check_out_date` (día de calendario) se siguen llenando para ambos modos —para una reserva por horas se derivan del instante preciso— así que el dashboard, el calendario y el listado admin filtran igual sin importar el modo. La función `reservation_occupancy()` (0010_hourly_bookings.sql) unifica ambos modos en un único rango de tiempo (`tstzrange`), que es lo que realmente se usa para decidir solapamientos: eso es lo que permite que dos reservas por horas el mismo día, en horarios distintos, no se bloqueen entre sí.

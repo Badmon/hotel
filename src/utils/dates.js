@@ -91,3 +91,49 @@ export function isTodayOrLater(dateString) {
   const today = parseDateOnly(todayDateOnly());
   return date.getTime() >= today.getTime();
 }
+
+/**
+ * Utilidades para reservas "por horas". A diferencia de check_in_date/
+ * check_out_date (fechas de calendario puras, sin hora), aquí sí
+ * trabajamos con instantes concretos (ISO 8601 con hora).
+ *
+ * buildLocalDateTimeIso asume que quien reserva está en la misma zona
+ * horaria que el hotel — razonable para un hotel de una sola sede sin
+ * huéspedes reservando desde el otro lado del mundo. Si eso cambia,
+ * este es el único lugar que habría que tocar para fijar una zona
+ * horaria explícita en vez de usar la del navegador/servidor.
+ */
+
+/** Combina "YYYY-MM-DD" + "HH:MM" (hora local) y devuelve un ISO string (instante UTC). */
+export function buildLocalDateTimeIso(dateString, timeString) {
+  if (!dateString || !timeString) return null;
+  const [year, month, day] = dateString.split("-").map(Number);
+  const [hour, minute] = timeString.split(":").map(Number);
+  return new Date(year, month - 1, day, hour, minute).toISOString();
+}
+
+/** Suma `hours` horas a un instante ISO y devuelve otro ISO string. */
+export function addHoursIso(isoString, hours) {
+  const date = new Date(isoString);
+  date.setHours(date.getHours() + hours);
+  return date.toISOString();
+}
+
+/** Diferencia en horas completas entre dos instantes ISO. */
+export function calculateHours(checkInIso, checkOutIso) {
+  if (!checkInIso || !checkOutIso) return 0;
+  const diffMs = new Date(checkOutIso).getTime() - new Date(checkInIso).getTime();
+  return diffMs > 0 ? Math.round(diffMs / (1000 * 60 * 60)) : 0;
+}
+
+/** Formatea un instante ISO como fecha y hora legibles ("10 sept 2026, 3:00 p.m."). */
+export function formatDateTimeDisplay(isoString) {
+  if (!isoString) return "";
+  return new Date(isoString).toLocaleString("es-PE", { dateStyle: "medium", timeStyle: "short" });
+}
+
+/** Formatea solo la hora de un instante ISO ("3:00 p.m."). */
+export function formatTimeDisplay(isoString) {
+  if (!isoString) return "";
+  return new Date(isoString).toLocaleString("es-PE", { timeStyle: "short" });
+}

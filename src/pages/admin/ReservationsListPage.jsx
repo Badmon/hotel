@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useReservations } from "../../hooks/useReservations";
 import { ReservationStatusBadge } from "../../components/admin/ReservationStatusBadge";
+import { BookingModeBadge } from "../../components/admin/BookingModeBadge";
 import { ReservationCard } from "../../components/admin/ReservationCard";
 import { Input } from "../../components/common/Input";
 import { Select } from "../../components/common/Select";
@@ -10,7 +11,7 @@ import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
 import { RESERVATION_STATUS, RESERVATION_STATUS_LABELS } from "../../constants/reservationStatus";
-import { formatDateDisplay } from "../../utils/dates";
+import { formatDateDisplay, formatDateTimeDisplay } from "../../utils/dates";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Todos los estados" },
@@ -72,6 +73,7 @@ export function ReservationsListPage() {
                   <th className="px-4 py-3">Código</th>
                   <th className="px-4 py-3">Huésped</th>
                   <th className="px-4 py-3">Habitación</th>
+                  <th className="px-4 py-3">Modo</th>
                   <th className="px-4 py-3">Entrada</th>
                   <th className="px-4 py-3">Salida</th>
                   <th className="px-4 py-3">Huéspedes</th>
@@ -85,8 +87,19 @@ export function ReservationsListPage() {
                     <td className="px-4 py-3 font-mono text-xs">{reservation.reservation_code}</td>
                     <td className="px-4 py-3">{reservation.guest_name}</td>
                     <td className="px-4 py-3">{reservation.rooms?.room_number ?? "—"}</td>
-                    <td className="px-4 py-3">{formatDateDisplay(reservation.check_in_date)}</td>
-                    <td className="px-4 py-3">{formatDateDisplay(reservation.check_out_date)}</td>
+                    <td className="px-4 py-3">
+                      <BookingModeBadge bookingMode={reservation.booking_mode} />
+                    </td>
+                    <td className="px-4 py-3">
+                      {reservation.booking_mode === "hourly"
+                        ? formatDateTimeDisplay(reservation.check_in_at)
+                        : formatDateDisplay(reservation.check_in_date)}
+                    </td>
+                    <td className="px-4 py-3">
+                      {reservation.booking_mode === "hourly"
+                        ? formatDateTimeDisplay(reservation.check_out_at)
+                        : formatDateDisplay(reservation.check_out_date)}
+                    </td>
                     <td className="px-4 py-3">{reservation.guest_count}</td>
                     <td className="px-4 py-3">
                       <ReservationStatusBadge status={reservation.status} />

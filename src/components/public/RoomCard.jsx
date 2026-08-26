@@ -2,10 +2,16 @@ import { Link } from "react-router-dom";
 import { siteConfig } from "../../config/siteConfig";
 import { formatCurrency } from "../../utils/currency";
 import { Button } from "../common/Button";
+import { BOOKING_MODE } from "../../constants/bookingMode";
 
-export function RoomCard({ roomType, reservationHref }) {
+export function RoomCard({ roomType, reservationHref, bookingMode = BOOKING_MODE.NIGHTLY }) {
   const image = roomType.room_images?.[0]?.image_url || siteConfig.images.placeholderRoom;
   const imageAlt = roomType.room_images?.[0]?.alt_text || roomType.name;
+
+  const isHourly = bookingMode === BOOKING_MODE.HOURLY;
+  const priceLabel = isHourly
+    ? `Desde ${formatCurrency(roomType.hourly_price)} / hora`
+    : `Desde ${formatCurrency(roomType.base_price)} / noche`;
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -17,9 +23,7 @@ export function RoomCard({ roomType, reservationHref }) {
         </p>
         <div className="mt-3 flex items-center justify-between text-sm text-slate-500">
           <span>Hasta {roomType.capacity} huéspedes</span>
-          <span className="font-semibold text-slate-900">
-            Desde {formatCurrency(roomType.base_price)} / noche
-          </span>
+          <span className="font-semibold text-slate-900">{priceLabel}</span>
         </div>
         <div className="mt-4 flex gap-2">
           <Link

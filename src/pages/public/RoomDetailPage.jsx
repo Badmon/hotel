@@ -91,9 +91,17 @@ export function RoomDetailPage() {
           <p className="text-2xl font-bold text-slate-900">
             {formatCurrency(roomType.base_price)} <span className="text-sm font-normal text-slate-500">/ noche</span>
           </p>
+          {roomType.allows_hourly && (
+            <p className="mt-1 text-base font-semibold text-slate-700">
+              {formatCurrency(roomType.hourly_price)} <span className="text-sm font-normal text-slate-500">/ hora</span>
+            </p>
+          )}
           <Link to={`/habitaciones/${roomType.slug}/reservar${reserveQuery ? `?${reserveQuery}` : ""}`}>
             <Button className="mt-4 w-full">Reservar</Button>
           </Link>
+          {roomType.allows_hourly && (
+            <p className="mt-2 text-xs text-slate-500">También disponible por horas.</p>
+          )}
           <p className="mt-3 text-xs text-slate-500">
             El pago se realiza directamente en el hotel. No se realiza ningún cobro en línea.
           </p>

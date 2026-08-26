@@ -1,10 +1,13 @@
 import { useCallback, useState } from "react";
-import { searchAvailableRoomTypes } from "../services/roomsService";
-import { validateAvailabilitySearch } from "../utils/validation";
+import { searchAvailableRoomTypes, searchAvailableRoomTypesHourly } from "../services/roomsService";
+import { validateAvailabilitySearch, validateHourlyAvailabilitySearch } from "../utils/validation";
+import { buildLocalDateTimeIso, addHoursIso } from "../utils/dates";
+import { BOOKING_MODE } from "../constants/bookingMode";
 
 /**
  * Encapsula el estado de búsqueda de disponibilidad: criterios, carga,
- * error y resultados. Usado por el buscador público.
+ * error y resultados. Usado por el buscador público, para ambos modos
+ * (por noche y por horas) — el modo viene en `criteria.bookingMode`.
  */
 export function useAvailability() {
   const [results, setResults] = useState(null);
@@ -13,7 +16,11 @@ export function useAvailability() {
   const [lastSearch, setLastSearch] = useState(null);
 
   const search = useCallback(async (criteria) => {
-    const { isValid, errors } = validateAvailabilitySearch(criteria);
+    const isHourly = criteria.bookingMode === BOOKING_MODE.HOURLY;
+    const { isValid, errors } = isHourly
+      ? validateHourlyAvailabilitySearch(criteria)
+      : validateAvailabilitySearch(criteria);
+
     if (!isValid) {
       setStatus("error");
       setError(Object.values(errors)[0]);
@@ -24,7 +31,17 @@ export function useAvailability() {
     setError(null);
 
     try {
-      const rooms = await searchAvailableRoomTypes(criteria);
+      const rooms = isHourly
+        ? await searchAvailableRoomTypesHourly({
+            checkInAt: buildLocalDateTimeIso(criteria.checkInDate, criteria.startTime),
+            checkOutAt: addHoursIso(
+              buildLocalDateTimeIso(criteria.checkInDate, criteria.startTime),
+              Number(criteria.durationHours)
+            ),
+            guestCount: criteria.guestCount,
+          })
+        : await searchAvailableRoomTypes(criteria);
+
       setResults(rooms);
       setLastSearch(criteria);
       setStatus(rooms.length === 0 ? "empty" : "success");

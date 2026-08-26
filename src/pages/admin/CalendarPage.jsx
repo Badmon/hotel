@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { fetchReservationsByDateRange } from "../../services/reservationsService";
 import { ReservationStatusBadge } from "../../components/admin/ReservationStatusBadge";
+import { BookingModeBadge } from "../../components/admin/BookingModeBadge";
 import { DateInput } from "../../components/common/DateInput";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
-import { todayDateOnly, addDays, formatDateDisplay } from "../../utils/dates";
+import { todayDateOnly, addDays, formatDateDisplay, formatDateTimeDisplay } from "../../utils/dates";
 
 /**
  * Vista sencilla de ocupación por rango de fechas. Deliberadamente
@@ -54,18 +55,30 @@ export function CalendarPage() {
                 <th className="px-4 py-3">Salida</th>
                 <th className="px-4 py-3">Habitación</th>
                 <th className="px-4 py-3">Huésped</th>
+                <th className="px-4 py-3">Modo</th>
                 <th className="px-4 py-3">Estado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {reservations.map((reservation) => (
                 <tr key={reservation.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">{formatDateDisplay(reservation.check_in_date)}</td>
-                  <td className="px-4 py-3">{formatDateDisplay(reservation.check_out_date)}</td>
+                  <td className="px-4 py-3">
+                    {reservation.booking_mode === "hourly"
+                      ? formatDateTimeDisplay(reservation.check_in_at)
+                      : formatDateDisplay(reservation.check_in_date)}
+                  </td>
+                  <td className="px-4 py-3">
+                    {reservation.booking_mode === "hourly"
+                      ? formatDateTimeDisplay(reservation.check_out_at)
+                      : formatDateDisplay(reservation.check_out_date)}
+                  </td>
                   <td className="px-4 py-3">
                     {reservation.rooms?.room_number ?? "—"} · {reservation.rooms?.room_types?.name ?? ""}
                   </td>
                   <td className="px-4 py-3">{reservation.guest_name}</td>
+                  <td className="px-4 py-3">
+                    <BookingModeBadge bookingMode={reservation.booking_mode} />
+                  </td>
                   <td className="px-4 py-3">
                     <ReservationStatusBadge status={reservation.status} />
                   </td>

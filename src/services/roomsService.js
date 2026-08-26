@@ -6,13 +6,13 @@ import { supabase } from "../lib/supabaseClient";
  * pasan siempre por estas funciones.
  */
 
+const ROOM_TYPE_COLUMNS = `id, name, slug, short_description, description, capacity, base_price,
+  allows_hourly, hourly_price, featured`;
+
 export async function fetchActiveRoomTypesWithImages() {
   const { data, error } = await supabase
     .from("room_types")
-    .select(
-      `id, name, slug, short_description, description, capacity, base_price, featured,
-       room_images ( id, image_url, alt_text, display_order )`
-    )
+    .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order )`)
     .eq("active", true)
     .order("featured", { ascending: false })
     .order("base_price", { ascending: true });
@@ -30,10 +30,7 @@ export async function fetchActiveRoomTypesWithImages() {
 export async function fetchRoomTypeBySlug(slug) {
   const { data, error } = await supabase
     .from("room_types")
-    .select(
-      `id, name, slug, short_description, description, capacity, base_price, featured,
-       room_images ( id, image_url, alt_text, display_order )`
-    )
+    .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order )`)
     .eq("slug", slug)
     .eq("active", true)
     .maybeSingle();
@@ -68,7 +65,42 @@ export async function searchAvailableRoomTypes({ checkInDate, checkOutDate, gues
   });
 
   if (error) throw error;
-  const availableTypes = data ?? [];
+  return attachRoomImages(data ?? [], (type) => ({
+    id: type.room_type_id,
+    name: type.name,
+    slug: type.slug,
+    short_description: type.short_description,
+    capacity: type.capacity,
+    base_price: type.base_price,
+  }));
+}
+
+/**
+ * Equivalente a searchAvailableRoomTypes pero para reserva "por
+ * horas": recibe instantes precisos (ISO) en vez de fechas, y solo
+ * devuelve tipos con allows_hourly = true (lo filtra la propia función
+ * SQL `search_available_rooms_hourly`).
+ */
+export async function searchAvailableRoomTypesHourly({ checkInAt, checkOutAt, guestCount }) {
+  const { data, error } = await supabase.rpc("search_available_rooms_hourly", {
+    p_check_in: checkInAt,
+    p_check_out: checkOutAt,
+    p_guests: guestCount,
+  });
+
+  if (error) throw error;
+  return attachRoomImages(data ?? [], (type) => ({
+    id: type.room_type_id,
+    name: type.name,
+    slug: type.slug,
+    short_description: type.short_description,
+    capacity: type.capacity,
+    hourly_price: type.hourly_price,
+  }));
+}
+
+/** Adjunta las imágenes de cada tipo a los resultados de una búsqueda de disponibilidad. */
+async function attachRoomImages(availableTypes, mapRoomType) {
   if (availableTypes.length === 0) return [];
 
   const typeIds = availableTypes.map((type) => type.room_type_id);
@@ -81,12 +113,7 @@ export async function searchAvailableRoomTypes({ checkInDate, checkOutDate, gues
   if (imagesError) throw imagesError;
 
   return availableTypes.map((type) => ({
-    id: type.room_type_id,
-    name: type.name,
-    slug: type.slug,
-    short_description: type.short_description,
-    capacity: type.capacity,
-    base_price: type.base_price,
+    ...mapRoomType(type),
     room_images: (images ?? []).filter((image) => image.room_type_id === type.room_type_id),
   }));
 }

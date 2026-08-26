@@ -8,6 +8,8 @@ import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
 import { Button } from "../../components/common/Button";
+import { BOOKING_MODE } from "../../constants/bookingMode";
+import { buildLocalDateTimeIso, addHoursIso } from "../../utils/dates";
 
 export function ReservationRequestPage() {
   const { slug } = useParams();
@@ -47,7 +49,17 @@ export function ReservationRequestPage() {
     );
   }
 
-  async function handleFormSubmit(values) {
+  // Si la habitación no admite reserva por horas, se ignora el modo de
+  // la URL y se fuerza "por noche" (defensa extra: el backend igual lo
+  // rechazaría con HOURLY_NOT_ALLOWED, pero así ni se muestra el
+  // formulario equivocado).
+  const bookingMode =
+    searchParams.get("mode") === BOOKING_MODE.HOURLY && roomType.allows_hourly
+      ? BOOKING_MODE.HOURLY
+      : BOOKING_MODE.NIGHTLY;
+  const isHourly = bookingMode === BOOKING_MODE.HOURLY;
+
+  function handleFormSubmit(values) {
     setFormValues(values);
     setStep("review");
   }
@@ -56,17 +68,33 @@ export function ReservationRequestPage() {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      const reservation = await createReservation({
+      const basePayload = {
         roomTypeId: roomType.id,
+        bookingMode,
         guestName: formValues.guestName,
         guestEmail: formValues.guestEmail,
         guestPhone: formValues.guestPhone,
         guestDocument: formValues.guestDocument || null,
         guestCount: Number(formValues.guestCount),
-        checkInDate: formValues.checkInDate,
-        checkOutDate: formValues.checkOutDate,
         notes: formValues.notes || null,
-      });
+      };
+
+      const payload = isHourly
+        ? {
+            ...basePayload,
+            checkInAt: buildLocalDateTimeIso(formValues.checkInDate, formValues.startTime),
+            checkOutAt: addHoursIso(
+              buildLocalDateTimeIso(formValues.checkInDate, formValues.startTime),
+              Number(formValues.durationHours)
+            ),
+          }
+        : {
+            ...basePayload,
+            checkInDate: formValues.checkInDate,
+            checkOutDate: formValues.checkOutDate,
+          };
+
+      const reservation = await createReservation(payload);
       navigate("/reserva/confirmada", { state: { reservation }, replace: true });
     } catch (error) {
       setSubmitError(error.message || "No fue posible enviar tu solicitud. Inténtalo nuevamente.");
@@ -86,9 +114,12 @@ export function ReservationRequestPage() {
         <div className="mt-6">
           <ReservationForm
             roomCapacity={roomType.capacity}
+            bookingMode={bookingMode}
             initialValues={{
               checkInDate: searchParams.get("checkIn"),
               checkOutDate: searchParams.get("checkOut"),
+              startTime: searchParams.get("startTime"),
+              durationHours: searchParams.get("duration") ? Number(searchParams.get("duration")) : undefined,
               guestCount: searchParams.get("guests"),
             }}
             onSubmit={handleFormSubmit}
@@ -100,8 +131,18 @@ export function ReservationRequestPage() {
         <div className="mt-6 space-y-6">
           <ReservationSummary
             roomType={roomType}
+            bookingMode={bookingMode}
             checkInDate={formValues.checkInDate}
             checkOutDate={formValues.checkOutDate}
+            checkInAt={isHourly ? buildLocalDateTimeIso(formValues.checkInDate, formValues.startTime) : undefined}
+            checkOutAt={
+              isHourly
+                ? addHoursIso(
+                    buildLocalDateTimeIso(formValues.checkInDate, formValues.startTime),
+                    Number(formValues.durationHours)
+                  )
+                : undefined
+            }
             guestCount={formValues.guestCount}
           />
 

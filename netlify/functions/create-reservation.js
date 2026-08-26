@@ -38,8 +38,11 @@ export async function handler(event) {
 
   const { data: result, error } = await supabaseAdmin.rpc("create_reservation_atomic", {
     p_room_type_id: data.roomTypeId,
+    p_booking_mode: data.bookingMode,
     p_check_in: data.checkInDate,
     p_check_out: data.checkOutDate,
+    p_check_in_at: data.checkInAt,
+    p_check_out_at: data.checkOutAt,
     p_guest_count: data.guestCount,
     p_guest_name: data.guestName,
     p_guest_email: data.guestEmail,
@@ -60,24 +63,30 @@ export async function handler(event) {
       reservation_code: reservation.reservation_code,
       guest_name: reservation.guest_name,
       status: reservation.status,
+      booking_mode: reservation.booking_mode,
       check_in_date: reservation.check_in_date,
       check_out_date: reservation.check_out_date,
+      check_in_at: reservation.check_in_at,
+      check_out_at: reservation.check_out_at,
     },
   });
 }
 
 function mapDatabaseError(message = "") {
   if (message.includes("NO_AVAILABILITY")) {
-    return "No hay habitaciones disponibles de este tipo para las fechas seleccionadas.";
+    return "No hay habitaciones disponibles de este tipo para el horario seleccionado.";
   }
   if (message.includes("CAPACITY_EXCEEDED")) {
     return "La cantidad de huéspedes supera la capacidad de esta habitación.";
+  }
+  if (message.includes("HOURLY_NOT_ALLOWED")) {
+    return "Esta habitación no admite reserva por horas.";
   }
   if (message.includes("ROOM_TYPE_NOT_FOUND")) {
     return "La habitación seleccionada ya no está disponible.";
   }
   if (message.includes("INVALID_DATES")) {
-    return "Las fechas seleccionadas no son válidas.";
+    return "Las fechas u horarios seleccionados no son válidos.";
   }
   return "No fue posible completar tu solicitud. Inténtalo nuevamente.";
 }
