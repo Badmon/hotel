@@ -63,6 +63,8 @@ export function ReservationForm({ initialValues, roomCapacity, bookingMode, onSu
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
           id="guest-phone"
+          type="tel"
+          inputMode="tel"
           label="Teléfono / WhatsApp"
           value={values.guestPhone}
           onChange={(e) => handleChange("guestPhone", e.target.value)}
@@ -82,6 +84,7 @@ export function ReservationForm({ initialValues, roomCapacity, bookingMode, onSu
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
           id="guest-document"
+          inputMode="numeric"
           label="Documento (opcional)"
           value={values.guestDocument}
           onChange={(e) => handleChange("guestDocument", e.target.value)}

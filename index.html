@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- minimum-scale evita que el pinch-zoom se aleje más allá del
+         ajuste natural de la página (sin eso, alejar el zoom deja
+         espacio en blanco alrededor y no vuelve a encajar solo).
+         maximum-scale se deja alto para no limitar el zoom-in, que sí
+         es importante para accesibilidad. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
     <title>Demo — Reservas</title>
     <meta
       name="description"
@@ -15,7 +20,7 @@
       content="Reserva tu habitación en Hotel Demo: conoce nuestras habitaciones, servicios y ubicación."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/images/hotel/hero.svg" />
+    <meta property="og:image" content="/images/hotel/hotel-home.jpg" />
   </head>
   <body>
     <div id="root"></div>

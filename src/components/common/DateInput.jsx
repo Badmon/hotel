@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Input de fecha en formato dd/mm/aaaa, siempre — a propósito no
@@ -7,10 +7,17 @@ import { useEffect, useRef, useState } from "react";
  * inglés, dd/mm/yyyy en español...), no algo controlable de forma
  * confiable entre navegadores.
  *
- * Por dentro sí mantiene un <input type="date"> oculto, sincronizado,
- * solo para poder abrir el selector de calendario nativo con el botón
- * — así no se pierde esa comodidad, solo el texto que se ve siempre es
- * dd/mm/aaaa sin importar el navegador.
+ * El ícono de calendario es, por dentro, un <input type="date"> real
+ * del mismo tamaño que el ícono (invisible, superpuesto solo ahí) —
+ * no un botón que dispara showPicker() por JS. showPicker() no es
+ * confiable en todos los navegadores (en particular Safari/iOS puede
+ * ignorarlo si no viene de una interacción directa sobre el propio
+ * input), así que en vez de depender de esa API se deja que el toque
+ * caiga directo sobre el input nativo: eso abre el selector con el
+ * comportamiento por defecto del navegador, sin JS de por medio, y
+ * funciona igual en desktop y mobile. El resto del campo (la parte de
+ * texto) queda completamente libre de overlays para que escribir y el
+ * autoformateo con "/" no tengan ninguna interferencia.
  *
  * Por fuera se comporta igual que un input controlado: value/onChange
  * siguen trabajando con fecha ISO "YYYY-MM-DD", así que nada más en el
@@ -21,7 +28,6 @@ import { useEffect, useRef, useState } from "react";
  */
 export function DateInput({ id, label, value, onChange, error, hint, min, max, required, className = "", ...props }) {
   const [text, setText] = useState(() => isoToDisplay(value));
-  const nativeInputRef = useRef(null);
 
   useEffect(() => {
     setText(isoToDisplay(value));
@@ -35,23 +41,6 @@ export function DateInput({ id, label, value, onChange, error, hint, min, max, r
 
   function handleNativeChange(event) {
     onChange({ target: { value: event.target.value } });
-  }
-
-  function openPicker() {
-    const input = nativeInputRef.current;
-    if (!input) return;
-    if (typeof input.showPicker === "function") {
-      try {
-        input.showPicker();
-        return;
-      } catch {
-        // Algunos navegadores exigen que el click venga de interacción
-        // directa del usuario; si showPicker() falla, se intenta con
-        // foco + click como respaldo.
-      }
-    }
-    input.focus();
-    input.click();
   }
 
   return (
@@ -78,28 +67,29 @@ export function DateInput({ id, label, value, onChange, error, hint, min, max, r
           required={required}
           {...props}
         />
-        <button
-          type="button"
-          onClick={openPicker}
-          aria-label="Abrir calendario"
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)]"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <div className="absolute right-0 top-0 h-full w-10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            className="pointer-events-none absolute right-2.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            aria-hidden="true"
+          >
             <rect x="3.5" y="4.5" width="17" height="16" rx="2" />
             <path strokeLinecap="round" d="M16 2.5v4M8 2.5v4M3.5 9.5h17" />
           </svg>
-        </button>
-        <input
-          ref={nativeInputRef}
-          type="date"
-          tabIndex={-1}
-          aria-hidden="true"
-          value={value || ""}
-          min={min}
-          max={max}
-          onChange={handleNativeChange}
-          className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
-        />
+          <input
+            type="date"
+            aria-label="Abrir calendario"
+            value={value || ""}
+            min={min}
+            max={max}
+            onChange={handleNativeChange}
+            className="h-full w-full cursor-pointer opacity-0"
+          />
+        </div>
       </div>
       {error && (
         <p id={`${id}-error`} className="mt-1 text-sm text-red-600">

@@ -16,6 +16,14 @@
   --color-text-muted: #64748b;
 }
 
+html {
+  /* Salvaguarda: si algún elemento se desborda por error del ancho de
+     pantalla (aunque sea por unos pixeles), evita que la página quede
+     con scroll horizontal — en mobile eso hace que el pinch-zoom deje
+     de "encajar" bien contra el viewport real. */
+  overflow-x: hidden;
+}
+
 body {
   color: var(--color-text);
   background-color: var(--color-background);

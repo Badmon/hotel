@@ -144,6 +144,8 @@ function SearchByContact() {
         />
         <Input
           id="find-contact-phone"
+          type="tel"
+          inputMode="tel"
           label="Teléfono usado al reservar"
           value={guestPhone}
           onChange={(e) => setGuestPhone(e.target.value)}
