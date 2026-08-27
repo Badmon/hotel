@@ -8,6 +8,7 @@ import { RoomsPage } from "./pages/public/RoomsPage";
 import { RoomDetailPage } from "./pages/public/RoomDetailPage";
 import { ReservationRequestPage } from "./pages/public/ReservationRequestPage";
 import { ReservationSuccessPage } from "./pages/public/ReservationSuccessPage";
+import { FindReservationPage } from "./pages/public/FindReservationPage";
 import { NotFoundPage } from "./pages/public/NotFoundPage";
 
 import { LoginPage } from "./pages/admin/LoginPage";
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/habitaciones/:slug" element={<RoomDetailPage />} />
             <Route path="/habitaciones/:slug/reservar" element={<ReservationRequestPage />} />
             <Route path="/reserva/confirmada" element={<ReservationSuccessPage />} />
+            <Route path="/reserva/buscar" element={<FindReservationPage />} />
           </Route>
 
           <Route path="/admin/login" element={<LoginPage />} />

@@ -40,6 +40,13 @@ export function ReservationSuccessPage() {
         <p className="mt-3 text-sm text-slate-600">
           El hotel revisará tu solicitud y se comunicará contigo para confirmar la disponibilidad.
         </p>
+        <p className="mt-2 text-xs text-slate-500">
+          Guarda este código. Si lo pierdes, puedes volver a buscarlo en{" "}
+          <Link to="/reserva/buscar" className="underline">
+            Buscar mi reserva
+          </Link>{" "}
+          con tu correo.
+        </p>
       </div>
 
       <dl className="mt-6 grid grid-cols-2 gap-4 rounded-xl border border-slate-200 p-5 text-sm">

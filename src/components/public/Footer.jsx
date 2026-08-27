@@ -37,6 +37,11 @@ export function Footer() {
             <li>{siteConfig.hotel.address}</li>
             <li>{siteConfig.hotel.phone}</li>
             <li>{siteConfig.hotel.email}</li>
+            <li>
+              <Link to="/reserva/buscar" className="hover:text-white">
+                Buscar mi reserva
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

@@ -23,6 +23,23 @@ export async function createReservation(payload) {
   return result.reservation;
 }
 
+/**
+ * Búsqueda pública de una reserva por código + correo (para cuando el
+ * huésped perdió la pantalla de confirmación). Vía RPC SECURITY
+ * DEFINER: anon no tiene SELECT sobre reservations, así que esta
+ * función es la única puerta de lectura pública, y exige ambos datos
+ * exactos para devolver algo.
+ */
+export async function findReservationByCode(reservationCode, guestEmail) {
+  const { data, error } = await supabase.rpc("find_reservation_by_code", {
+    p_reservation_code: reservationCode,
+    p_guest_email: guestEmail,
+  });
+
+  if (error) throw error;
+  return data?.[0] ?? null;
+}
+
 /** Uso administrativo: listar reservas con filtros. Requiere sesión staff/admin (RLS). */
 export async function fetchReservations({ status, search, fromDate, toDate } = {}) {
   let query = supabase
