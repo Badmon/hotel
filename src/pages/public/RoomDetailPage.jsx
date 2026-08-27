@@ -8,6 +8,7 @@ import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
 import { Button } from "../../components/common/Button";
+import { RoomImageGallery } from "../../components/public/RoomImageGallery";
 
 export function RoomDetailPage() {
   const { id } = useParams();
@@ -53,23 +54,7 @@ export function RoomDetailPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-        <img
-          src={images[0].image_url}
-          alt={images[0].alt_text || roomType.name}
-          className="col-span-4 h-72 w-full rounded-xl object-cover sm:col-span-3 sm:h-96"
-        />
-        <div className="hidden grid-cols-1 gap-3 sm:col-span-1 sm:grid">
-          {images.slice(1, 4).map((image) => (
-            <img
-              key={image.id ?? image.image_url}
-              src={image.image_url}
-              alt={image.alt_text || roomType.name}
-              className="h-[7.5rem] w-full rounded-xl object-cover"
-            />
-          ))}
-        </div>
-      </div>
+      <RoomImageGallery images={images} roomName={roomType.name} />
 
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-3">
         <div className="lg:col-span-2">
