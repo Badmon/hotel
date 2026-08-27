@@ -6,15 +6,15 @@ export function LocationSection() {
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">Ubicación</h2>
 
-        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-center">
-          <div>
+        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-5 lg:items-center">
+          <div className="lg:col-span-2">
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Nombre y dirección del hotel
             </p>
-            <p className="mt-1 text-slate-700">{siteConfig.hotel.name}</p>
-            <p className="mt-1 text-slate-600">{siteConfig.hotel.address}</p>
-            <p className="mt-1 text-slate-600">{siteConfig.hotel.schedule}</p>
-            <p className="mt-1 text-xs text-slate-400">Puedes mostrarle esto a tu taxista.</p>
+            <p className="mt-1.5 text-slate-700">{siteConfig.hotel.name}</p>
+            <p className="text-slate-600">{siteConfig.hotel.address}</p>
+            <p className="text-slate-600">{siteConfig.hotel.schedule}</p>
+            <p className="mt-1.5 text-xs text-slate-400">Puedes mostrarle esto a tu taxista.</p>
 
             <a
               href={siteConfig.maps.directionsUrl}
@@ -26,11 +26,11 @@ export function LocationSection() {
             </a>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+          <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm lg:col-span-3">
             <iframe
               title="Mapa de ubicación del hotel"
               src={siteConfig.maps.embedUrl}
-              className="h-80 w-full lg:h-96"
+              className="h-80 w-full lg:h-[28rem]"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
