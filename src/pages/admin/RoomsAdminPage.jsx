@@ -8,6 +8,7 @@ import {
 } from "../../services/roomsService";
 import { ROOM_STATUS, ROOM_STATUS_BADGE_STYLES, ROOM_STATUS_LABELS } from "../../constants/roomStatus";
 import { Badge } from "../../components/common/Badge";
+import { CopyableId } from "../../components/common/CopyableId";
 import { Select } from "../../components/common/Select";
 import { Input } from "../../components/common/Input";
 import { Button } from "../../components/common/Button";
@@ -93,6 +94,7 @@ export function RoomsAdminPage() {
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
             <tr>
               <th className="px-4 py-3">Número</th>
+              <th className="px-4 py-3">ID</th>
               <th className="px-4 py-3">Tipo</th>
               <th className="px-4 py-3">Piso</th>
               <th className="px-4 py-3">Estado</th>
@@ -104,6 +106,9 @@ export function RoomsAdminPage() {
             {rooms.map((room) => (
               <tr key={room.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-medium">{room.room_number}</td>
+                <td className="px-4 py-3">
+                  <CopyableId id={room.id} />
+                </td>
                 <td className="px-4 py-3">{room.room_types?.name ?? "—"}</td>
                 <td className="px-4 py-3">{room.floor ?? "—"}</td>
                 <td className="px-4 py-3">

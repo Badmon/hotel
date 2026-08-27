@@ -10,6 +10,7 @@ import { Modal } from "../../components/common/Modal";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { Button } from "../../components/common/Button";
 import { Badge } from "../../components/common/Badge";
+import { CopyableId } from "../../components/common/CopyableId";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
@@ -124,6 +125,7 @@ export function RoomTypesAdminPage() {
                     </Badge>
                   )}
                 </div>
+                <CopyableId id={roomType.id} className="mt-1" />
                 <p className="mt-1 line-clamp-2 flex-1 text-sm text-slate-600">{roomType.short_description}</p>
                 <div className="mt-3 text-sm text-slate-500">
                   <p>Hasta {roomType.capacity} huéspedes</p>
