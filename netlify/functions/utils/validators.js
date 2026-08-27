@@ -25,14 +25,17 @@ export function validateCreateReservationInput(body) {
   const guestPhone = typeof body.guestPhone === "string" ? body.guestPhone.trim() : "";
   const guestDocument = typeof body.guestDocument === "string" ? body.guestDocument.trim() : null;
   const notes = typeof body.notes === "string" ? body.notes.trim() : null;
-  const roomTypeId = typeof body.roomTypeId === "string" ? body.roomTypeId : "";
+  // room_types.id es un entero autoincremental (ver
+  // 0016_sequential_room_ids.sql), no un uuid: acá puede llegar como
+  // number (fetch con JSON) o string, según lo mande el cliente.
+  const roomTypeId = Number(body.roomTypeId);
   const guestCount = Number(body.guestCount);
   const bookingMode = body.bookingMode === "hourly" ? "hourly" : "nightly";
 
   if (guestName.length < 3) errors.push("El nombre completo es obligatorio.");
   if (!EMAIL_REGEX.test(guestEmail)) errors.push("El correo electrónico no es válido.");
   if (guestPhone.length < 6) errors.push("El teléfono no es válido.");
-  if (!roomTypeId) errors.push("Debes indicar una habitación válida.");
+  if (!Number.isInteger(roomTypeId) || roomTypeId < 1) errors.push("Debes indicar una habitación válida.");
   if (!Number.isInteger(guestCount) || guestCount < 1) {
     errors.push("La cantidad de huéspedes debe ser al menos 1.");
   }
