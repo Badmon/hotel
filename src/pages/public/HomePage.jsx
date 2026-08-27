@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MainBanner } from "../../components/public/MainBanner";
 import { AvailabilitySearch } from "../../components/public/AvailabilitySearch";
 import { RoomCard } from "../../components/public/RoomCard";
@@ -19,9 +19,10 @@ export function HomePage() {
   const { roomTypes, status, error } = useRooms();
 
   const nightlyRoomTypes = roomTypes.filter((room) => !room.allows_hourly);
-  const featuredRoomTypes = nightlyRoomTypes.filter((room) => room.featured).slice(0, 3);
-  const nightlyRoomsToShow = featuredRoomTypes.length > 0 ? featuredRoomTypes : nightlyRoomTypes.slice(0, 3);
-  const hourlyRoomsToShow = roomTypes.filter((room) => room.allows_hourly).slice(0, 3);
+  const featuredRoomTypes = nightlyRoomTypes.filter((room) => room.featured);
+  const nightlyRoomsToShow = [...featuredRoomTypes, ...nightlyRoomTypes.filter((room) => !room.featured)].slice(0, 3);
+  const hourlyRoomTypes = roomTypes.filter((room) => room.allows_hourly);
+  const hourlyRoomsToShow = hourlyRoomTypes.slice(0, 3);
   const promotedRoomsToShow = roomTypes.filter(isPromotionActive).slice(0, 3);
 
   function handleSearch(criteria) {
@@ -71,7 +72,9 @@ export function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">Habitaciones</h2>
-          <p className="mt-2 text-slate-600">Conoce algunas de nuestras opciones para tu estadía.</p>
+          <p className="mt-2 text-slate-600">
+            {nightlyRoomTypes.length} {nightlyRoomTypes.length === 1 ? "opción disponible" : "opciones disponibles"} para tu estadía.
+          </p>
         </div>
 
         <div className="mt-8">
@@ -82,6 +85,9 @@ export function HomePage() {
               {nightlyRoomsToShow.map((roomType) => (
                 <RoomCard key={roomType.id} roomType={roomType} />
               ))}
+              {nightlyRoomTypes.length > nightlyRoomsToShow.length && (
+                <ExploreMoreCard count={nightlyRoomTypes.length} mode="nightly" />
+              )}
             </div>
           )}
         </div>
@@ -93,7 +99,7 @@ export function HomePage() {
             <div>
               <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">Reserva por horas</h2>
               <p className="mt-2 text-slate-600">
-                ¿Solo necesitas la habitación unas horas? Resérvala directamente, sin quedarte toda la noche.
+                {hourlyRoomTypes.length} {hourlyRoomTypes.length === 1 ? "opción disponible" : "opciones disponibles"} para reservar sin quedarte toda la noche.
               </p>
             </div>
 
@@ -101,6 +107,9 @@ export function HomePage() {
               {hourlyRoomsToShow.map((roomType) => (
                 <HourlyRoomCard key={roomType.id} roomType={roomType} />
               ))}
+              {hourlyRoomTypes.length > hourlyRoomsToShow.length && (
+                <ExploreMoreCard count={hourlyRoomTypes.length} mode="hourly" />
+              )}
             </div>
           </div>
         </section>
@@ -112,5 +121,27 @@ export function HomePage() {
 
       <p className="sr-only">{siteConfig.hotel.description}</p>
     </>
+  );
+}
+
+function ExploreMoreCard({ count, mode }) {
+  const isHourly = mode === "hourly";
+  const label = isHourly ? "por horas" : "por noche";
+
+  return (
+    <Link
+      to={`/habitaciones?modalidad=${mode}`}
+      className={`group flex items-center gap-2 rounded-xl border-2 border-dashed px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md sm:col-span-2 lg:col-span-3 ${
+        isHourly
+          ? "border-violet-300 bg-violet-100/60 hover:border-violet-500"
+          : "border-sky-300 bg-sky-50 hover:border-sky-500"
+      }`}
+    >
+      <span className={`text-xs font-semibold ${isHourly ? "text-violet-700" : "text-sky-700"}`}>Más opciones:</span>
+      <span className="text-sm font-bold text-slate-900 sm:text-base">
+        Ver las {count} habitaciones {label}
+        <span className="ml-2 inline-block transition-transform group-hover:translate-x-1">→</span>
+      </span>
+    </Link>
   );
 }

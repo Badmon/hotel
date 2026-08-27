@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { AvailabilitySearch } from "../../components/public/AvailabilitySearch";
 import { RoomCard } from "../../components/public/RoomCard";
 import { HourlyRoomCard } from "../../components/public/HourlyRoomCard";
@@ -70,6 +70,7 @@ export function RoomsPage() {
   }
 
   const isSearchMode = Boolean(initialCriteria);
+  const catalogMode = searchParams.get("modalidad") === "hourly" ? "hourly" : searchParams.get("modalidad") === "nightly" ? "nightly" : null;
   const bookingMode = initialCriteria?.bookingMode ?? BOOKING_MODE.NIGHTLY;
   const isHourlySearch = isSearchMode && bookingMode === BOOKING_MODE.HOURLY;
 
@@ -84,14 +85,20 @@ export function RoomsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Habitaciones</h1>
+      <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+        {catalogMode === "hourly" ? "Habitaciones por horas" : catalogMode === "nightly" ? "Habitaciones por noche" : "Habitaciones"}
+      </h1>
       <p className="mt-2 text-slate-600">
-        Elige tus fechas para ver solamente las habitaciones disponibles, o explora todas nuestras opciones.
+        {catalogMode
+          ? "Explora todas las opciones disponibles en esta modalidad."
+          : "Elige tus fechas para ver solamente las habitaciones disponibles, o explora todas nuestras opciones."}
       </p>
 
-      <div className="mt-6">
-        <AvailabilitySearch initialValues={initialCriteria} onSubmit={handleSearch} isLoading={availability.status === "loading"} />
-      </div>
+      {!catalogMode && (
+        <div className="mt-6">
+          <AvailabilitySearch initialValues={initialCriteria} onSubmit={handleSearch} isLoading={availability.status === "loading"} />
+        </div>
+      )}
 
       <div className="mt-10">
         {isLoading && <LoadingSpinner label="Buscando habitaciones..." />}
@@ -125,25 +132,30 @@ export function RoomsPage() {
 
         {/* Sin búsqueda activa: catálogo completo, separado por modalidad. */}
         {!isLoading && !hasError && !isSearchMode && (
-          <RoomsCatalog roomTypes={allRooms.roomTypes} />
+          <RoomsCatalog roomTypes={allRooms.roomTypes} mode={catalogMode} />
         )}
       </div>
     </div>
   );
 }
 
-function RoomsCatalog({ roomTypes }) {
-  const hourlyRoomTypes = roomTypes.filter((room) => room.allows_hourly);
-  const nightlyRoomTypes = roomTypes.filter((room) => !room.allows_hourly);
-  const promotedRoomTypes = roomTypes.filter(isPromotionActive);
+function RoomsCatalog({ roomTypes, mode }) {
+  const filteredRoomTypes = mode === "hourly"
+    ? roomTypes.filter((room) => room.allows_hourly)
+    : mode === "nightly"
+      ? roomTypes.filter((room) => !room.allows_hourly)
+      : roomTypes;
+  const hourlyRoomTypes = filteredRoomTypes.filter((room) => room.allows_hourly);
+  const nightlyRoomTypes = filteredRoomTypes.filter((room) => !room.allows_hourly);
+  const promotedRoomTypes = filteredRoomTypes.filter(isPromotionActive);
 
-  if (roomTypes.length === 0) {
-    return <EmptyState title="Todavía no hay habitaciones publicadas" />;
+  if (filteredRoomTypes.length === 0) {
+    return <EmptyState title={`Todavía no hay habitaciones ${mode === "hourly" ? "por horas" : "por noche"} publicadas`} />;
   }
 
   return (
     <div className="space-y-14">
-      {promotedRoomTypes.length > 0 && (
+      {mode === null && promotedRoomTypes.length > 0 && (
         <div className="rounded-2xl bg-amber-50 p-5 sm:p-8">
           <h2 className="text-xl font-semibold text-slate-900">Promociones</h2>
           <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -154,14 +166,14 @@ function RoomsCatalog({ roomTypes }) {
         </div>
       )}
 
-      <div>
+      {nightlyRoomTypes.length > 0 && <div>
         <h2 className="text-xl font-semibold text-slate-900">Por noche</h2>
         <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {nightlyRoomTypes.map((roomType) => (
             <RoomCard key={roomType.id} roomType={roomType} />
           ))}
         </div>
-      </div>
+      </div>}
 
       {hourlyRoomTypes.length > 0 && (
         <div>
@@ -172,6 +184,12 @@ function RoomsCatalog({ roomTypes }) {
             ))}
           </div>
         </div>
+      )}
+
+      {mode && (
+        <Link to="/habitaciones" className="text-sm font-semibold text-[var(--color-primary)] hover:underline">
+          ← Ver todas las habitaciones
+        </Link>
       )}
     </div>
   );
