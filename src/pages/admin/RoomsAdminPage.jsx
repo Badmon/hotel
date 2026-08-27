@@ -3,6 +3,7 @@ import {
   fetchAllRooms,
   updateRoomStatus,
   createRoom,
+  updateRoom,
   deleteRoom,
   fetchAllRoomTypesForAdmin,
 } from "../../services/roomsService";
@@ -29,7 +30,9 @@ export function RoomsAdminPage() {
   const [error, setError] = useState(null);
   const [updatingRoomId, setUpdatingRoomId] = useState(null);
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingRoom, setEditingRoom] = useState(null); // null = cerrado, {} = nueva, {...} = editar
+  const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState(null);
   const [deletingRoom, setDeletingRoom] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -66,6 +69,28 @@ export function RoomsAdminPage() {
     }
   }
 
+  async function handleSaveRoom(values) {
+    setIsSaving(true);
+    setFormError(null);
+    try {
+      if (editingRoom?.id) {
+        await updateRoom(editingRoom.id, values);
+      } else {
+        await createRoom(values);
+      }
+      setEditingRoom(null);
+      load();
+    } catch (err) {
+      setFormError(
+        err.message?.includes("duplicate key")
+          ? "Ya existe una habitación con ese número."
+          : err.message || "No fue posible guardar los cambios."
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   async function handleDelete() {
     setIsDeleting(true);
     setDeleteError(null);
@@ -86,7 +111,7 @@ export function RoomsAdminPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={() => setIsCreateOpen(true)}>+ Nueva habitación</Button>
+        <Button onClick={() => setEditingRoom({})}>+ Nueva habitación</Button>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -127,9 +152,14 @@ export function RoomsAdminPage() {
                   />
                 </td>
                 <td className="px-4 py-3">
-                  <Button variant="danger" size="sm" onClick={() => setDeletingRoom(room)}>
-                    Eliminar
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" size="sm" onClick={() => setEditingRoom(room)}>
+                      Editar
+                    </Button>
+                    <Button variant="danger" size="sm" onClick={() => setDeletingRoom(room)}>
+                      Eliminar
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -137,15 +167,21 @@ export function RoomsAdminPage() {
         </table>
       </div>
 
-      <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Nueva habitación">
-        <CreateRoomForm
-          roomTypes={roomTypes}
-          onCancel={() => setIsCreateOpen(false)}
-          onCreated={() => {
-            setIsCreateOpen(false);
-            load();
-          }}
-        />
+      <Modal
+        isOpen={Boolean(editingRoom)}
+        onClose={() => setEditingRoom(null)}
+        title={editingRoom?.id ? "Editar habitación" : "Nueva habitación"}
+      >
+        {formError && <ErrorMessage message={formError} className="mb-4" />}
+        {editingRoom && (
+          <RoomForm
+            roomTypes={roomTypes}
+            initialValues={editingRoom.id ? editingRoom : null}
+            onCancel={() => setEditingRoom(null)}
+            onSubmit={handleSaveRoom}
+            isSubmitting={isSaving}
+          />
+        )}
       </Modal>
 
       <ConfirmDialog
@@ -165,11 +201,11 @@ export function RoomsAdminPage() {
   );
 }
 
-function CreateRoomForm({ roomTypes, onCancel, onCreated }) {
-  const [roomNumber, setRoomNumber] = useState("");
-  const [roomTypeId, setRoomTypeId] = useState(roomTypes[0]?.id ?? "");
-  const [floor, setFloor] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+function RoomForm({ roomTypes, initialValues, onCancel, onSubmit, isSubmitting }) {
+  const isEditing = Boolean(initialValues?.id);
+  const [roomNumber, setRoomNumber] = useState(initialValues?.room_number ?? "");
+  const [roomTypeId, setRoomTypeId] = useState(initialValues?.room_type_id ?? roomTypes[0]?.id ?? "");
+  const [floor, setFloor] = useState(initialValues?.floor ?? "");
   const [error, setError] = useState(null);
 
   async function handleSubmit(event) {
@@ -178,19 +214,11 @@ function CreateRoomForm({ roomTypes, onCancel, onCreated }) {
       setError("Completa el número y el tipo de habitación.");
       return;
     }
-    setIsSubmitting(true);
     setError(null);
     try {
-      await createRoom({ roomNumber: roomNumber.trim(), roomTypeId: Number(roomTypeId), floor: floor.trim() });
-      onCreated();
-    } catch (err) {
-      setError(
-        err.message?.includes("duplicate key")
-          ? "Ya existe una habitación con ese número."
-          : err.message || "No fue posible crear la habitación."
-      );
-    } finally {
-      setIsSubmitting(false);
+      await onSubmit({ roomNumber: roomNumber.trim(), roomTypeId: Number(roomTypeId), floor: floor.trim() });
+    } catch {
+      // El error ya queda reflejado por el estado de formError del padre.
     }
   }
 
@@ -215,7 +243,7 @@ function CreateRoomForm({ roomTypes, onCancel, onCreated }) {
           Cancelar
         </Button>
         <Button type="submit" isLoading={isSubmitting}>
-          Crear
+          {isEditing ? "Guardar cambios" : "Crear"}
         </Button>
       </div>
     </form>

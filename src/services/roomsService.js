@@ -153,6 +153,18 @@ export async function createRoom({ roomNumber, roomTypeId, floor }) {
   return data;
 }
 
+export async function updateRoom(id, { roomNumber, roomTypeId, floor }) {
+  const { data, error } = await supabase
+    .from("rooms")
+    .update({ room_number: roomNumber, room_type_id: roomTypeId, floor: floor || null })
+    .eq("id", id)
+    .select(`id, room_number, floor, status, notes, room_type_id, room_types ( id, name )`)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function deleteRoom(roomId) {
   const { error } = await supabase.from("rooms").delete().eq("id", roomId);
   if (error) throw translateDeleteError(error, "habitación");
