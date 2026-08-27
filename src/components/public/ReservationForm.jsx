@@ -1,26 +1,22 @@
 import { useState } from "react";
 import { Input } from "../common/Input";
 import { DateInput } from "../common/DateInput";
-import { Select } from "../common/Select";
 import { Textarea } from "../common/Textarea";
 import { Button } from "../common/Button";
 import { validateReservationForm, validateHourlyReservationForm } from "../../utils/validation";
 import { todayDateOnly } from "../../utils/dates";
-import { BOOKING_MODE, HOURLY_DURATION_OPTIONS } from "../../constants/bookingMode";
-
-const DURATION_OPTIONS = HOURLY_DURATION_OPTIONS.map((hours) => ({
-  value: String(hours),
-  label: `${hours} ${hours === 1 ? "hora" : "horas"}`,
-}));
+import { BOOKING_MODE } from "../../constants/bookingMode";
 
 /**
  * Formulario de datos del huésped. No envía nada por sí mismo: delega
  * el envío al padre (ReservationRequestPage) vía onSubmit, para poder
  * mostrar antes un resumen de confirmación. `bookingMode` decide si
- * pide fecha de entrada/salida (nightly) o fecha + hora + duración
- * (hourly).
+ * pide fecha de entrada/salida (nightly) o fecha + hora (hourly). En
+ * modo hourly la duración ya no la elige el huésped: es un paquete
+ * fijo del tipo de habitación (`hourlyDurationHours`), que acá solo se
+ * muestra como referencia.
  */
-export function ReservationForm({ initialValues, roomCapacity, bookingMode, onSubmit, isSubmitting }) {
+export function ReservationForm({ initialValues, roomCapacity, bookingMode, hourlyDurationHours, onSubmit, isSubmitting }) {
   const isHourly = bookingMode === BOOKING_MODE.HOURLY;
 
   const [values, setValues] = useState({
@@ -32,7 +28,6 @@ export function ReservationForm({ initialValues, roomCapacity, bookingMode, onSu
     checkInDate: initialValues?.checkInDate || todayDateOnly(),
     checkOutDate: initialValues?.checkOutDate || "",
     startTime: initialValues?.startTime || "14:00",
-    durationHours: initialValues?.durationHours || 3,
     notes: initialValues?.notes || "",
   });
   const [errors, setErrors] = useState({});
@@ -104,7 +99,7 @@ export function ReservationForm({ initialValues, roomCapacity, bookingMode, onSu
       </div>
 
       {isHourly ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <DateInput
             id="check-in-date"
             label="Fecha"
@@ -123,14 +118,13 @@ export function ReservationForm({ initialValues, roomCapacity, bookingMode, onSu
             error={errors.startTime}
             required
           />
-          <Select
-            id="duration-hours"
-            label="Duración"
-            options={DURATION_OPTIONS}
-            value={String(values.durationHours)}
-            onChange={(e) => handleChange("durationHours", e.target.value)}
-            error={errors.durationHours}
-          />
+          {hourlyDurationHours && (
+            <p className="sm:col-span-2 text-sm text-slate-500">
+              Duración del paquete: <span className="font-medium text-slate-700">
+                {hourlyDurationHours} {hourlyDurationHours === 1 ? "hora" : "horas"}
+              </span>
+            </p>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

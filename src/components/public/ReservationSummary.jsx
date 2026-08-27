@@ -5,16 +5,16 @@ import { BOOKING_MODE } from "../../constants/bookingMode";
 
 export function ReservationSummary({ roomType, bookingMode, checkInDate, checkOutDate, checkInAt, checkOutAt, guestCount }) {
   const isHourly = bookingMode === BOOKING_MODE.HOURLY;
-  const onPromotion = !isHourly && isPromotionActive(roomType);
+  const onPromotion = isPromotionActive(roomType);
   const nightlyRate = onPromotion ? roomType.promo_price : roomType?.base_price;
 
   const nights = isHourly ? null : calculateNights(checkInDate, checkOutDate);
   const hours = isHourly ? calculateHours(checkInAt, checkOutAt) : null;
 
+  // hourly_price es el precio del paquete completo (fijo, no una
+  // tarifa por hora), así que no se multiplica por la duración.
   const referencePrice = isHourly
-    ? roomType?.hourly_price
-      ? roomType.hourly_price * hours
-      : null
+    ? (onPromotion ? roomType?.promo_price : roomType?.hourly_price) || null
     : nightlyRate
       ? nightlyRate * nights
       : null;

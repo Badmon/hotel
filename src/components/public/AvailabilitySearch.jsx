@@ -1,16 +1,10 @@
 import { useState } from "react";
 import { DateInput } from "../common/DateInput";
 import { Input } from "../common/Input";
-import { Select } from "../common/Select";
 import { Button } from "../common/Button";
 import { todayDateOnly, addDays } from "../../utils/dates";
 import { validateAvailabilitySearch, validateHourlyAvailabilitySearch } from "../../utils/validation";
-import { BOOKING_MODE, BOOKING_MODE_LABELS, HOURLY_DURATION_OPTIONS } from "../../constants/bookingMode";
-
-const DURATION_OPTIONS = HOURLY_DURATION_OPTIONS.map((hours) => ({
-  value: String(hours),
-  label: `${hours} ${hours === 1 ? "hora" : "horas"}`,
-}));
+import { BOOKING_MODE, BOOKING_MODE_LABELS } from "../../constants/bookingMode";
 
 /**
  * Formulario de búsqueda de disponibilidad. Es "tonto": recibe los
@@ -32,7 +26,6 @@ export function AvailabilitySearch({
     initialValues?.checkOutDate || addDays(todayDateOnly(), 1)
   );
   const [startTime, setStartTime] = useState(initialValues?.startTime || "14:00");
-  const [durationHours, setDurationHours] = useState(initialValues?.durationHours || 3);
   const [guestCount, setGuestCount] = useState(initialValues?.guestCount || 2);
   const [errors, setErrors] = useState({});
 
@@ -46,7 +39,6 @@ export function AvailabilitySearch({
         bookingMode: BOOKING_MODE.HOURLY,
         checkInDate,
         startTime,
-        durationHours: Number(durationHours),
         guestCount: Number(guestCount),
       };
       const { isValid, errors: validationErrors } = validateHourlyAvailabilitySearch(criteria);
@@ -86,11 +78,7 @@ export function AvailabilitySearch({
         </div>
       )}
 
-      <div
-        className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:items-end ${
-          isHourly ? "lg:grid-cols-[1fr_1fr_1fr_1fr_auto]" : "lg:grid-cols-[1fr_1fr_1fr_auto]"
-        }`}
-      >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
         {isHourly ? (
           <>
             <DateInput
@@ -110,14 +98,6 @@ export function AvailabilitySearch({
               onChange={(event) => setStartTime(event.target.value)}
               error={errors.startTime}
               required
-            />
-            <Select
-              id="duration-hours"
-              label="Duración"
-              options={DURATION_OPTIONS}
-              value={String(durationHours)}
-              onChange={(event) => setDurationHours(event.target.value)}
-              error={errors.durationHours}
             />
           </>
         ) : (

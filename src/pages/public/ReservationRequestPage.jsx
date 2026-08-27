@@ -49,14 +49,9 @@ export function ReservationRequestPage() {
     );
   }
 
-  // Si la habitación no admite reserva por horas, se ignora el modo de
-  // la URL y se fuerza "por noche" (defensa extra: el backend igual lo
-  // rechazaría con HOURLY_NOT_ALLOWED, pero así ni se muestra el
-  // formulario equivocado).
-  const bookingMode =
-    searchParams.get("mode") === BOOKING_MODE.HOURLY && roomType.allows_hourly
-      ? BOOKING_MODE.HOURLY
-      : BOOKING_MODE.NIGHTLY;
+  // La modalidad pertenece al tipo de habitación; no se puede cambiar
+  // desde la URL.
+  const bookingMode = roomType.allows_hourly ? BOOKING_MODE.HOURLY : BOOKING_MODE.NIGHTLY;
   const isHourly = bookingMode === BOOKING_MODE.HOURLY;
 
   function handleFormSubmit(values) {
@@ -84,10 +79,6 @@ export function ReservationRequestPage() {
         ? {
             ...basePayload,
             checkInAt: buildLocalDateTimeIso(formValues.checkInDate, formValues.startTime),
-            checkOutAt: addHoursIso(
-              buildLocalDateTimeIso(formValues.checkInDate, formValues.startTime),
-              Number(formValues.durationHours)
-            ),
           }
         : {
             ...basePayload,
@@ -116,6 +107,7 @@ export function ReservationRequestPage() {
           <ReservationForm
             roomCapacity={roomType.capacity}
             bookingMode={bookingMode}
+            hourlyDurationHours={roomType.hourly_duration_hours}
             initialValues={
               // Al volver a editar, se re-usan los datos que ya había
               // escrito el huésped en vez de los defaults de la URL.
@@ -123,7 +115,6 @@ export function ReservationRequestPage() {
                 checkInDate: searchParams.get("checkIn"),
                 checkOutDate: searchParams.get("checkOut"),
                 startTime: searchParams.get("startTime"),
-                durationHours: searchParams.get("duration") ? Number(searchParams.get("duration")) : undefined,
                 guestCount: searchParams.get("guests"),
               }
             }
@@ -144,7 +135,7 @@ export function ReservationRequestPage() {
               isHourly
                 ? addHoursIso(
                     buildLocalDateTimeIso(formValues.checkInDate, formValues.startTime),
-                    Number(formValues.durationHours)
+                    Number(roomType.hourly_duration_hours)
                   )
                 : undefined
             }

@@ -40,6 +40,8 @@ Abre **SQL Editor** en el dashboard y ejecuta, en orden, cada archivo de `migrat
 0014_find_reservations_by_contact.sql
 0015_room_images_storage.sql
 0016_sequential_room_ids.sql
+0017_hourly_fixed_package.sql
+0018_exclusive_room_booking_type.sql
 ```
 
 Opción B — Supabase CLI:
@@ -81,3 +83,5 @@ Para dar de alta más personal, repite el paso 2 con `role = 'staff'` (o `'admin
 - **Los cambios de estado administrativos** (confirmar, check-in, check-out, etc.) son funciones RPC (`confirm_reservation`, `checkin_reservation`, ...) que validan el rol del usuario y la transición de estado permitida.
 - **La integridad de disponibilidad** está protegida en tres capas: la consulta de disponibilidad (`search_available_rooms`), la selección de habitación con `FOR UPDATE SKIP LOCKED` dentro de `create_reservation_atomic`/`confirm_reservation`, y finalmente el constraint `reservations_no_overlap` (`EXCLUDE USING gist`), que hace imposible a nivel de base de datos que dos reservas `confirmed`/`checked_in` se solapen para la misma habitación.
 - **Reservas "por noche" y "por horas"** conviven en la misma tabla (`reservations.booking_mode`). `check_in_date`/`check_out_date` (día de calendario) se siguen llenando para ambos modos —para una reserva por horas se derivan del instante preciso— así que el dashboard, el calendario y el listado admin filtran igual sin importar el modo. La función `reservation_occupancy()` (0010_hourly_bookings.sql) unifica ambos modos en un único rango de tiempo (`tstzrange`), que es lo que realmente se usa para decidir solapamientos: eso es lo que permite que dos reservas por horas el mismo día, en horarios distintos, no se bloqueen entre sí.
+- **"Por horas" es un paquete fijo por tipo de habitación** (`room_types.hourly_price` + `hourly_duration_hours`, 0017_hourly_fixed_package.sql), no una tarifa por hora: el encargado define, por ejemplo, "S/60 por 3 horas", y el huésped reserva ese bloque tal cual — ya no elige la duración. El checkout (`check_out_at`) se calcula siempre en el servidor (`p_check_in_at + hourly_duration_hours`), nunca se confía en uno mandado por el cliente.
+- **"Por noche" y "por horas" son modalidades excluyentes** (0018_exclusive_room_booking_type.sql): un tipo de habitación es uno u otro, no ambos (`room_types_exclusive_booking_type_check`). `base_price` es `null` para un tipo "solo por horas" (por eso dejó de ser `NOT NULL`), y `search_available_rooms`/`create_reservation_atomic` rechazan reservar "por noche" un tipo que solo admite "por horas" (y viceversa, ya validado desde 0010). Esta migración también corrige la zona horaria usada en `search_available_rooms` (`at time zone 'America/Lima'` en vez de `'utc'`).

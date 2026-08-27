@@ -70,16 +70,11 @@ export function validateAvailabilitySearch({ checkInDate, checkOutDate, guestCou
   return { isValid: Object.keys(errors).length === 0, errors };
 }
 
-export function validateHourlyAvailabilitySearch({ checkInDate, startTime, durationHours, guestCount }) {
+export function validateHourlyAvailabilitySearch({ checkInDate, startTime, guestCount }) {
   const errors = {};
 
   if (!checkInDate) errors.checkInDate = "Selecciona la fecha.";
   if (!startTime) errors.startTime = "Selecciona la hora de llegada.";
-
-  const duration = Number(durationHours);
-  if (!Number.isInteger(duration) || duration < 1 || duration > 12) {
-    errors.durationHours = "La duración debe ser entre 1 y 12 horas.";
-  }
 
   const guests = Number(guestCount);
   if (!Number.isInteger(guests) || guests < 1) {
@@ -96,7 +91,6 @@ export function validateHourlyReservationForm({
   guestCount,
   checkInDate,
   startTime,
-  durationHours,
   roomCapacity,
 }) {
   const errors = {};
@@ -120,11 +114,6 @@ export function validateHourlyReservationForm({
 
   if (!checkInDate) errors.checkInDate = "Selecciona la fecha.";
   if (!startTime) errors.startTime = "Selecciona la hora de llegada.";
-
-  const duration = Number(durationHours);
-  if (!Number.isInteger(duration) || duration < 1 || duration > 12) {
-    errors.durationHours = "La duración debe ser entre 1 y 12 horas.";
-  }
 
   return { isValid: Object.keys(errors).length === 0, errors };
 }

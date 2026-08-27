@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { searchAvailableRoomTypes, searchAvailableRoomTypesHourly } from "../services/roomsService";
 import { validateAvailabilitySearch, validateHourlyAvailabilitySearch } from "../utils/validation";
-import { buildLocalDateTimeIso, addHoursIso } from "../utils/dates";
+import { buildLocalDateTimeIso } from "../utils/dates";
 import { BOOKING_MODE } from "../constants/bookingMode";
 
 /**
@@ -34,10 +34,6 @@ export function useAvailability() {
       const rooms = isHourly
         ? await searchAvailableRoomTypesHourly({
             checkInAt: buildLocalDateTimeIso(criteria.checkInDate, criteria.startTime),
-            checkOutAt: addHoursIso(
-              buildLocalDateTimeIso(criteria.checkInDate, criteria.startTime),
-              Number(criteria.durationHours)
-            ),
             guestCount: criteria.guestCount,
           })
         : await searchAvailableRoomTypes(criteria);

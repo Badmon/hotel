@@ -7,7 +7,7 @@ import { supabase } from "../lib/supabaseClient";
  */
 
 const ROOM_TYPE_COLUMNS = `id, name, slug, short_description, description, capacity, base_price,
-  allows_hourly, hourly_price, featured, active,
+  allows_hourly, hourly_price, hourly_duration_hours, featured, active,
   on_promotion, promo_price, promo_starts_at, promo_ends_at`;
 
 export async function fetchActiveRoomTypesWithImages() {
@@ -78,14 +78,15 @@ export async function searchAvailableRoomTypes({ checkInDate, checkOutDate, gues
 
 /**
  * Equivalente a searchAvailableRoomTypes pero para reserva "por
- * horas": recibe instantes precisos (ISO) en vez de fechas, y solo
- * devuelve tipos con allows_hourly = true (lo filtra la propia función
- * SQL `search_available_rooms_hourly`).
+ * horas": recibe solo el instante de inicio (ISO) — la duración ya no
+ * la elige el huésped, es un paquete fijo por tipo de habitación
+ * (hourly_duration_hours), así que el checkout lo calcula la propia
+ * función SQL `search_available_rooms_hourly` para cada tipo. Solo
+ * devuelve tipos con allows_hourly = true.
  */
-export async function searchAvailableRoomTypesHourly({ checkInAt, checkOutAt, guestCount }) {
+export async function searchAvailableRoomTypesHourly({ checkInAt, guestCount }) {
   const { data, error } = await supabase.rpc("search_available_rooms_hourly", {
     p_check_in: checkInAt,
-    p_check_out: checkOutAt,
     p_guests: guestCount,
   });
 
@@ -97,6 +98,7 @@ export async function searchAvailableRoomTypesHourly({ checkInAt, checkOutAt, gu
     short_description: type.short_description,
     capacity: type.capacity,
     hourly_price: type.hourly_price,
+    hourly_duration_hours: type.hourly_duration_hours,
   }));
 }
 

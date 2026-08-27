@@ -118,7 +118,9 @@ export function RoomTypesAdminPage() {
                   <h3 className="text-lg font-semibold text-slate-900">{roomType.name}</h3>
                   {!roomType.active && <Badge className="bg-slate-200 text-slate-600">Inactiva</Badge>}
                   {roomType.featured && <Badge className="bg-amber-100 text-amber-800">Destacada</Badge>}
-                  {roomType.allows_hourly && <Badge className="bg-violet-100 text-violet-800">Por horas</Badge>}
+                  <Badge className={roomType.allows_hourly ? "bg-violet-100 text-violet-800" : "bg-sky-100 text-sky-800"}>
+                    {roomType.allows_hourly ? "Por horas" : "Por noches"}
+                  </Badge>
                   {roomType.on_promotion && (
                     <Badge className={isPromotionActive(roomType) ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-600"}>
                       {isPromotionActive(roomType) ? "Promoción vigente" : "Promoción programada"}
@@ -131,14 +133,19 @@ export function RoomTypesAdminPage() {
                   <p>Hasta {roomType.capacity} huéspedes</p>
                   {roomType.on_promotion ? (
                     <p>
-                      <span className="mr-2 line-through">{formatCurrency(roomType.base_price)}</span>
-                      <span className="font-semibold text-emerald-700">{formatCurrency(roomType.promo_price)} / noche</span>
+                      <span className="mr-2 line-through">{formatCurrency(roomType.allows_hourly ? roomType.hourly_price : roomType.base_price)}</span>
+                      <span className="font-semibold text-emerald-700">
+                        {formatCurrency(roomType.promo_price)} {roomType.allows_hourly ? "por paquete" : "/ noche"}
+                      </span>
                     </p>
-                  ) : (
+                  ) : !roomType.allows_hourly ? (
                     <p className="font-semibold text-slate-900">{formatCurrency(roomType.base_price)} / noche</p>
-                  )}
+                  ) : null}
                   {roomType.allows_hourly && (
-                    <p className="font-semibold text-violet-700">{formatCurrency(roomType.hourly_price)} / hora</p>
+                    <p className="font-semibold text-violet-700">
+                      {formatCurrency(roomType.hourly_price)} por {roomType.hourly_duration_hours}{" "}
+                      {roomType.hourly_duration_hours === 1 ? "hora" : "horas"}
+                    </p>
                   )}
                 </div>
                 <div className="mt-4 flex gap-2">

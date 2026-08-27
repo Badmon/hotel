@@ -42,7 +42,6 @@ export async function handler(event) {
     p_check_in: data.checkInDate,
     p_check_out: data.checkOutDate,
     p_check_in_at: data.checkInAt,
-    p_check_out_at: data.checkOutAt,
     p_guest_count: data.guestCount,
     p_guest_name: data.guestName,
     p_guest_email: data.guestEmail,
@@ -81,6 +80,9 @@ function mapDatabaseError(message = "") {
   }
   if (message.includes("HOURLY_NOT_ALLOWED")) {
     return "Esta habitación no admite reserva por horas.";
+  }
+  if (message.includes("NIGHTLY_NOT_ALLOWED")) {
+    return "Esta habitación solo se reserva por horas.";
   }
   if (message.includes("ROOM_TYPE_NOT_FOUND")) {
     return "La habitación seleccionada ya no está disponible.";

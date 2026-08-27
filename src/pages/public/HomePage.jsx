@@ -18,8 +18,9 @@ export function HomePage() {
   const navigate = useNavigate();
   const { roomTypes, status, error } = useRooms();
 
-  const featuredRoomTypes = roomTypes.filter((room) => room.featured).slice(0, 3);
-  const nightlyRoomsToShow = featuredRoomTypes.length > 0 ? featuredRoomTypes : roomTypes.slice(0, 3);
+  const nightlyRoomTypes = roomTypes.filter((room) => !room.allows_hourly);
+  const featuredRoomTypes = nightlyRoomTypes.filter((room) => room.featured).slice(0, 3);
+  const nightlyRoomsToShow = featuredRoomTypes.length > 0 ? featuredRoomTypes : nightlyRoomTypes.slice(0, 3);
   const hourlyRoomsToShow = roomTypes.filter((room) => room.allows_hourly).slice(0, 3);
   const promotedRoomsToShow = roomTypes.filter(isPromotionActive).slice(0, 3);
 
@@ -30,7 +31,6 @@ export function HomePage() {
             mode: BOOKING_MODE.HOURLY,
             checkIn: criteria.checkInDate,
             startTime: criteria.startTime,
-            duration: String(criteria.durationHours),
             guests: String(criteria.guestCount),
           }
         : {

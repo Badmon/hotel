@@ -10,7 +10,7 @@ export function RoomCard({ roomType, reservationHref, bookingMode = BOOKING_MODE
 
   const isHourly = bookingMode === BOOKING_MODE.HOURLY;
   const priceLabel = isHourly
-    ? `Desde ${formatCurrency(roomType.hourly_price)} / hora`
+    ? `${formatCurrency(roomType.hourly_price)} por ${roomType.hourly_duration_hours} ${roomType.hourly_duration_hours === 1 ? "hora" : "horas"}`
     : `Desde ${formatCurrency(roomType.base_price)} / noche`;
 
   return (

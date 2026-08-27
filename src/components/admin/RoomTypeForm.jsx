@@ -24,8 +24,11 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [capacity, setCapacity] = useState(initialValues?.capacity ?? 2);
   const [basePrice, setBasePrice] = useState(initialValues?.base_price ?? "");
-  const [allowsHourly, setAllowsHourly] = useState(initialValues?.allows_hourly ?? false);
+  // `allows_hourly` se conserva como columna por compatibilidad, pero
+  // ahora representa una modalidad exclusiva: por noche o por horas.
+  const [bookingType, setBookingType] = useState(initialValues?.allows_hourly ? "hourly" : "nightly");
   const [hourlyPrice, setHourlyPrice] = useState(initialValues?.hourly_price ?? "");
+  const [hourlyDurationHours, setHourlyDurationHours] = useState(initialValues?.hourly_duration_hours ?? "");
   const [onPromotion, setOnPromotion] = useState(initialValues?.on_promotion ?? false);
   const [promoPrice, setPromoPrice] = useState(initialValues?.promo_price ?? "");
   const [promoStartsAt, setPromoStartsAt] = useState(initialValues?.promo_starts_at ?? "");
@@ -38,6 +41,7 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
   const [errors, setErrors] = useState({});
   const [uploadingIndex, setUploadingIndex] = useState(null);
   const [uploadError, setUploadError] = useState(null);
+  const isHourly = bookingType === "hourly";
 
   // Archivos subidos al bucket durante esta sesión de edición, para
   // poder limpiarlos si se reemplazan antes de guardar o si se
@@ -96,19 +100,29 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
     if (!Number.isInteger(Number(capacity)) || Number(capacity) < 1) {
       newErrors.capacity = "La capacidad debe ser al menos 1.";
     }
-    if (basePrice === "" || Number.isNaN(Number(basePrice)) || Number(basePrice) < 0) {
+    if (!isHourly && (basePrice === "" || Number.isNaN(Number(basePrice)) || Number(basePrice) <= 0)) {
       newErrors.basePrice = "Ingresa un precio por noche válido.";
     }
-    if (allowsHourly) {
+    if (isHourly) {
       if (hourlyPrice === "" || Number.isNaN(Number(hourlyPrice)) || Number(hourlyPrice) <= 0) {
-        newErrors.hourlyPrice = "Ingresa un precio por hora válido.";
+        newErrors.hourlyPrice = "Ingresa un precio válido.";
+      }
+      if (
+        hourlyDurationHours === "" ||
+        !Number.isInteger(Number(hourlyDurationHours)) ||
+        Number(hourlyDurationHours) <= 0
+      ) {
+        newErrors.hourlyDurationHours = "Ingresa una cantidad de horas válida.";
       }
     }
     if (onPromotion) {
       if (promoPrice === "" || Number.isNaN(Number(promoPrice)) || Number(promoPrice) <= 0) {
         newErrors.promoPrice = "Ingresa un precio de oferta válido.";
-      } else if (basePrice !== "" && Number(promoPrice) >= Number(basePrice)) {
-        newErrors.promoPrice = "El precio de oferta debe ser menor al precio por noche.";
+      } else {
+        const regularPrice = isHourly ? hourlyPrice : basePrice;
+        if (regularPrice !== "" && Number(promoPrice) >= Number(regularPrice)) {
+          newErrors.promoPrice = "El precio de oferta debe ser menor al precio regular.";
+        }
       }
       if (promoStartsAt && promoEndsAt && promoEndsAt < promoStartsAt) {
         newErrors.promoEndsAt = "La fecha de fin debe ser posterior a la de inicio.";
@@ -129,9 +143,10 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
       short_description: shortDescription.trim() || null,
       description: description.trim() || null,
       capacity: Number(capacity),
-      base_price: Number(basePrice),
-      allows_hourly: allowsHourly,
-      hourly_price: allowsHourly ? Number(hourlyPrice) : null,
+      base_price: isHourly ? null : Number(basePrice),
+      allows_hourly: isHourly,
+      hourly_price: isHourly ? Number(hourlyPrice) : null,
+      hourly_duration_hours: isHourly ? Number(hourlyDurationHours) : null,
       on_promotion: onPromotion,
       promo_price: onPromotion ? Number(promoPrice) : null,
       promo_starts_at: onPromotion && promoStartsAt ? promoStartsAt : null,
@@ -158,6 +173,20 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <fieldset className="rounded-lg border border-slate-200 p-4">
+        <legend className="px-1 text-sm font-medium text-slate-700">Tipo de reserva</legend>
+        <div className="flex flex-wrap gap-5">
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input type="radio" name="room-type-booking-type" value="nightly" checked={!isHourly} onChange={() => setBookingType("nightly")} />
+            Por noches
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input type="radio" name="room-type-booking-type" value="hourly" checked={isHourly} onChange={() => setBookingType("hourly")} />
+            Por horas
+          </label>
+        </div>
+      </fieldset>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
           id="room-type-name"
@@ -207,45 +236,53 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
           error={errors.capacity}
           required
         />
-        <Input
-          id="room-type-base-price"
-          type="number"
-          min={0}
-          step="0.01"
-          label="Precio por noche"
-          value={basePrice}
-          onChange={(e) => setBasePrice(e.target.value)}
-          error={errors.basePrice}
-          required
-        />
-      </div>
-
-      <div className="rounded-lg border border-slate-200 p-4">
-        <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-          <input
-            type="checkbox"
-            checked={allowsHourly}
-            onChange={(e) => setAllowsHourly(e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300"
-          />
-          Admite reserva por horas
-        </label>
-
-        {allowsHourly && (
+        {!isHourly && (
           <Input
-            id="room-type-hourly-price"
+            id="room-type-base-price"
             type="number"
             min={0}
             step="0.01"
-            label="Precio por hora"
-            value={hourlyPrice}
-            onChange={(e) => setHourlyPrice(e.target.value)}
-            error={errors.hourlyPrice}
-            className="mt-3 max-w-xs"
+            label="Precio por noche"
+            value={basePrice}
+            onChange={(e) => setBasePrice(e.target.value)}
+            error={errors.basePrice}
             required
           />
         )}
       </div>
+
+      {isHourly && (
+        <div className="rounded-lg border border-slate-200 p-4">
+          <p className="text-sm font-medium text-slate-700">Paquete por horas</p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:max-w-md sm:grid-cols-2">
+            <Input
+              id="room-type-hourly-price"
+              type="number"
+              min={0}
+              step="0.01"
+              label="Precio del paquete"
+              value={hourlyPrice}
+              onChange={(e) => setHourlyPrice(e.target.value)}
+              error={errors.hourlyPrice}
+              required
+            />
+            <Input
+              id="room-type-hourly-duration"
+              type="number"
+              min={1}
+              step="1"
+              label="Horas incluidas"
+              value={hourlyDurationHours}
+              onChange={(e) => setHourlyDurationHours(e.target.value)}
+              error={errors.hourlyDurationHours}
+              required
+            />
+          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            Es un paquete fijo (ej. S/60 por 3 horas): el huésped reserva ese bloque tal cual, no elige la duración.
+          </p>
+        </div>
+      )}
 
       <div className="rounded-lg border border-slate-200 p-4">
         <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
@@ -269,7 +306,7 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
               value={promoPrice}
               onChange={(e) => setPromoPrice(e.target.value)}
               error={errors.promoPrice}
-              hint="Debe ser menor al precio por noche."
+              hint={`Debe ser menor al precio ${isHourly ? "del paquete" : "por noche"}.`}
               className="max-w-xs"
               required
             />

@@ -25,13 +25,11 @@ export function RoomsPage() {
 
     if (mode === BOOKING_MODE.HOURLY) {
       const startTime = searchParams.get("startTime");
-      const durationHours = searchParams.get("duration");
-      if (!startTime || !durationHours) return null;
+      if (!startTime) return null;
       return {
         bookingMode: BOOKING_MODE.HOURLY,
         checkInDate: checkIn,
         startTime,
-        durationHours: Number(durationHours),
         guestCount: Number(guests),
       };
     }
@@ -58,7 +56,6 @@ export function RoomsPage() {
             mode: BOOKING_MODE.HOURLY,
             checkIn: criteria.checkInDate,
             startTime: criteria.startTime,
-            duration: String(criteria.durationHours),
             guests: String(criteria.guestCount),
           }
         : {
@@ -137,6 +134,7 @@ export function RoomsPage() {
 
 function RoomsCatalog({ roomTypes }) {
   const hourlyRoomTypes = roomTypes.filter((room) => room.allows_hourly);
+  const nightlyRoomTypes = roomTypes.filter((room) => !room.allows_hourly);
   const promotedRoomTypes = roomTypes.filter(isPromotionActive);
 
   if (roomTypes.length === 0) {
@@ -159,7 +157,7 @@ function RoomsCatalog({ roomTypes }) {
       <div>
         <h2 className="text-xl font-semibold text-slate-900">Por noche</h2>
         <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {roomTypes.map((roomType) => (
+          {nightlyRoomTypes.map((roomType) => (
             <RoomCard key={roomType.id} roomType={roomType} />
           ))}
         </div>

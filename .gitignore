@@ -31,3 +31,6 @@ deno.lock
 *.njsproj
 *.sln
 *.sw?
+
+# Supabase CLI cache local (generado al correr `npx supabase`)
+supabase/.temp/

@@ -27,11 +27,18 @@ values
    4, 180.00, true, true)
 on conflict (slug) do nothing;
 
--- Matrimonial y Doble también se pueden reservar por horas; Familiar
--- se deja solo para estadías por noche (caso típico: habitaciones
--- grandes/familiares no suelen ofrecerse por horas).
-update public.room_types set allows_hourly = true, hourly_price = 25.00 where slug = 'matrimonial';
-update public.room_types set allows_hourly = true, hourly_price = 20.00 where slug = 'doble';
+-- Matrimonial y Doble se ofrecen "solo por horas" (paquete fijo:
+-- precio + cantidad de horas, no una tarifa por hora ni una opción
+-- adicional a la nocturna — ambas modalidades son excluyentes, ver
+-- 0018_exclusive_room_booking_type.sql, por eso base_price pasa a
+-- null); Familiar se deja solo para estadías por noche (caso típico:
+-- habitaciones grandes/familiares no suelen ofrecerse por horas).
+update public.room_types
+set allows_hourly = true, base_price = null, hourly_price = 60.00, hourly_duration_hours = 3
+where slug = 'matrimonial';
+update public.room_types
+set allows_hourly = true, base_price = null, hourly_price = 40.00, hourly_duration_hours = 2
+where slug = 'doble';
 
 -- ─────────────────────────────────────────────────────────────
 -- Habitaciones físicas

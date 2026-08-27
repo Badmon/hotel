@@ -12,7 +12,9 @@ import { Button } from "../common/Button";
 export function PromotionRoomCard({ roomType }) {
   const image = roomType.room_images?.[0]?.image_url || siteConfig.images.placeholderRoom;
   const imageAlt = roomType.room_images?.[0]?.alt_text || roomType.name;
-  const discount = calculateDiscountPercentage(roomType.base_price, roomType.promo_price);
+  const isHourly = roomType.allows_hourly;
+  const regularPrice = isHourly ? roomType.hourly_price : roomType.base_price;
+  const discount = calculateDiscountPercentage(regularPrice, roomType.promo_price);
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-amber-200 bg-white shadow-sm">
@@ -26,10 +28,10 @@ export function PromotionRoomCard({ roomType }) {
         <h3 className="text-lg font-semibold text-slate-900">{roomType.name}</h3>
         <p className="mt-1 line-clamp-2 flex-1 text-sm text-slate-600">{roomType.short_description}</p>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-sm text-slate-400 line-through">{formatCurrency(roomType.base_price)}</span>
+          <span className="text-sm text-slate-400 line-through">{formatCurrency(regularPrice)}</span>
           <span className="text-lg font-bold text-amber-700">
             {formatCurrency(roomType.promo_price)}
-            <span className="text-xs font-normal text-slate-500"> / noche</span>
+            <span className="text-xs font-normal text-slate-500">{isHourly ? " por paquete" : " / noche"}</span>
           </span>
         </div>
         <p className="mt-1 text-xs text-slate-500">Hasta {roomType.capacity} huéspedes</p>
@@ -41,7 +43,7 @@ export function PromotionRoomCard({ roomType }) {
           >
             Ver habitación
           </Link>
-          <Link to={`/habitaciones/${roomType.slug}/reservar`} className="w-full">
+          <Link to={`/habitaciones/${roomType.slug}/reservar${isHourly ? "?mode=hourly" : ""}`} className="w-full">
             <Button className="w-full !bg-amber-600 hover:!bg-amber-700" size="sm">
               Aprovechar oferta
             </Button>

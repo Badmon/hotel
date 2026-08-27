@@ -28,7 +28,10 @@ export function HourlyRoomCard({ roomType, reservationHref }) {
           <h3 className="text-lg font-semibold text-slate-900">{roomType.name}</h3>
           <span className="whitespace-nowrap text-lg font-bold text-violet-700">
             {formatCurrency(roomType.hourly_price)}
-            <span className="text-xs font-normal text-slate-500"> / hora</span>
+            <span className="text-xs font-normal text-slate-500">
+              {" "}
+              por {roomType.hourly_duration_hours} {roomType.hourly_duration_hours === 1 ? "hora" : "horas"}
+            </span>
           </span>
         </div>
         <p className="mt-1 line-clamp-2 flex-1 text-sm text-slate-600">{roomType.short_description}</p>

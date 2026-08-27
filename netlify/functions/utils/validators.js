@@ -5,7 +5,9 @@
  *
  * Soporta dos modos, distinguidos por `bookingMode`:
  *  - "nightly": requiere checkInDate/checkOutDate ("YYYY-MM-DD").
- *  - "hourly": requiere checkInAt/checkOutAt (ISO 8601 con hora).
+ *  - "hourly": requiere checkInAt (ISO 8601 con hora) — el checkout es
+ *    un paquete fijo del tipo de habitación (hourly_duration_hours),
+ *    se calcula en la base de datos, nunca lo manda el cliente.
  */
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,7 +54,6 @@ export function validateCreateReservationInput(body) {
     checkInDate: null,
     checkOutDate: null,
     checkInAt: null,
-    checkOutAt: null,
   };
 
   if (bookingMode === "nightly") {
@@ -68,21 +69,14 @@ export function validateCreateReservationInput(body) {
     data.checkInDate = checkInDate;
     data.checkOutDate = checkOutDate;
   } else {
+    // El checkout ya no lo manda el cliente: es un paquete fijo por
+    // tipo de habitación (room_types.hourly_duration_hours), calculado
+    // server-side dentro de create_reservation_atomic.
     const checkInAt = body.checkInAt;
-    const checkOutAt = body.checkOutAt;
 
     if (!isValidIsoDateTime(checkInAt)) errors.push("La hora de llegada no es válida.");
-    if (!isValidIsoDateTime(checkOutAt)) errors.push("La hora de salida no es válida.");
-    if (isValidIsoDateTime(checkInAt) && isValidIsoDateTime(checkOutAt) && new Date(checkOutAt) <= new Date(checkInAt)) {
-      errors.push("La hora de salida debe ser posterior a la hora de llegada.");
-    }
-    if (isValidIsoDateTime(checkInAt) && isValidIsoDateTime(checkOutAt)) {
-      const hours = (new Date(checkOutAt) - new Date(checkInAt)) / (1000 * 60 * 60);
-      if (hours > 12) errors.push("La duración máxima para una reserva por horas es de 12 horas.");
-    }
 
     data.checkInAt = checkInAt;
-    data.checkOutAt = checkOutAt;
   }
 
   return { isValid: errors.length === 0, errors, data };
