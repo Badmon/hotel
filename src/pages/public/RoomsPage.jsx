@@ -146,7 +146,7 @@ function RoomsCatalog({ roomTypes }) {
   return (
     <div className="space-y-14">
       {promotedRoomTypes.length > 0 && (
-        <div>
+        <div className="rounded-2xl bg-amber-50 p-5 sm:p-8">
           <h2 className="text-xl font-semibold text-slate-900">Promociones</h2>
           <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {promotedRoomTypes.map((roomType) => (
