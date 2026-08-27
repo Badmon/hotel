@@ -116,13 +116,17 @@ export function ReservationRequestPage() {
           <ReservationForm
             roomCapacity={roomType.capacity}
             bookingMode={bookingMode}
-            initialValues={{
-              checkInDate: searchParams.get("checkIn"),
-              checkOutDate: searchParams.get("checkOut"),
-              startTime: searchParams.get("startTime"),
-              durationHours: searchParams.get("duration") ? Number(searchParams.get("duration")) : undefined,
-              guestCount: searchParams.get("guests"),
-            }}
+            initialValues={
+              // Al volver a editar, se re-usan los datos que ya había
+              // escrito el huésped en vez de los defaults de la URL.
+              formValues ?? {
+                checkInDate: searchParams.get("checkIn"),
+                checkOutDate: searchParams.get("checkOut"),
+                startTime: searchParams.get("startTime"),
+                durationHours: searchParams.get("duration") ? Number(searchParams.get("duration")) : undefined,
+                guestCount: searchParams.get("guests"),
+              }
+            }
             onSubmit={handleFormSubmit}
           />
         </div>

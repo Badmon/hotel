@@ -24,16 +24,16 @@ export function ReservationForm({ initialValues, roomCapacity, bookingMode, onSu
   const isHourly = bookingMode === BOOKING_MODE.HOURLY;
 
   const [values, setValues] = useState({
-    guestName: "",
-    guestEmail: "",
-    guestPhone: "",
-    guestDocument: "",
+    guestName: initialValues?.guestName || "",
+    guestEmail: initialValues?.guestEmail || "",
+    guestPhone: initialValues?.guestPhone || "",
+    guestDocument: initialValues?.guestDocument || "",
     guestCount: initialValues?.guestCount || 1,
     checkInDate: initialValues?.checkInDate || todayDateOnly(),
     checkOutDate: initialValues?.checkOutDate || "",
     startTime: initialValues?.startTime || "14:00",
     durationHours: initialValues?.durationHours || 3,
-    notes: "",
+    notes: initialValues?.notes || "",
   });
   const [errors, setErrors] = useState({});
 
