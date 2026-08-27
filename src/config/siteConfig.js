@@ -13,7 +13,7 @@
 
 export const siteConfig = {
   hotel: {
-    name: "Demo",
+    name: "Smart Love",
     slogan: "Descansa, desconecta y disfruta tu estadía",
     description:
       "Un hotel pensado para que tu descanso sea simple: habitaciones cómodas, atención cercana y una ubicación conveniente.",
@@ -21,7 +21,7 @@ export const siteConfig = {
     // Solo dígitos, con código de país, sin signos ni espacios (formato wa.me)
     whatsapp: "51999999999",
     email: "reservas@hoteldemo.com",
-    address: "Av. Principal 123, Ciudad, País",
+    address: "Sector Alipio Ponce Mz F lote 6, 15058 San Juan de Miraflores, Perú",
     schedule: "Recepción disponible las 24 horas",
   },
 
@@ -55,9 +55,10 @@ export const siteConfig = {
   },
 
   maps: {
-    embedUrl:
-      "https://www.google.com/maps?q=Av.+Principal+123&output=embed",
-    directionsUrl: "https://www.google.com/maps?q=Av.+Principal+123",
+    // Coordenadas de "Hostal cochera jacuzzi" (Smart Love), obtenidas
+    // del enlace corto de Google Maps compartido para el hotel.
+    embedUrl: "https://www.google.com/maps?q=-12.1710662,-76.9798348&z=17&output=embed",
+    directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=-12.1710662,-76.9798348",
   },
 
   services: [
