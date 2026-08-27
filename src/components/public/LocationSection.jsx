@@ -11,7 +11,7 @@ export function LocationSection() {
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Nombre y dirección del hotel
             </p>
-            <p className="mt-1.5 text-slate-700">{siteConfig.hotel.name}</p>
+            <p className="mt-1.5 font-bold text-slate-700">{siteConfig.hotel.name}</p>
             <p className="text-slate-600">{siteConfig.hotel.address}</p>
             <p className="text-slate-600">{siteConfig.hotel.schedule}</p>
 
