@@ -31,7 +31,11 @@ export function PromotionRoomCard({ roomType }) {
           <span className="text-sm text-slate-400 line-through">{formatCurrency(regularPrice)}</span>
           <span className="text-lg font-bold text-amber-700">
             {formatCurrency(roomType.promo_price)}
-            <span className="text-xs font-normal text-slate-500">{isHourly ? " por paquete" : " / noche"}</span>
+            <span className="text-xs font-normal text-slate-500">
+              {isHourly
+                ? ` / ${roomType.hourly_duration_hours} ${roomType.hourly_duration_hours === 1 ? "hora" : "horas"}`
+                : " / noche"}
+            </span>
           </span>
         </div>
         <p className="mt-1 text-xs text-slate-500">Hasta {roomType.capacity} huéspedes</p>

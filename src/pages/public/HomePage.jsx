@@ -19,8 +19,7 @@ export function HomePage() {
   const { roomTypes, status, error } = useRooms();
 
   const nightlyRoomTypes = roomTypes.filter((room) => !room.allows_hourly);
-  const featuredRoomTypes = nightlyRoomTypes.filter((room) => room.featured);
-  const nightlyRoomsToShow = [...featuredRoomTypes, ...nightlyRoomTypes.filter((room) => !room.featured)].slice(0, 3);
+  const nightlyRoomsToShow = nightlyRoomTypes.slice(0, 3);
   const hourlyRoomTypes = roomTypes.filter((room) => room.allows_hourly);
   const hourlyRoomsToShow = hourlyRoomTypes.slice(0, 3);
   const promotedRoomsToShow = roomTypes.filter(isPromotionActive).slice(0, 3);

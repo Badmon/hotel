@@ -11,20 +11,20 @@
 -- ─────────────────────────────────────────────────────────────
 -- Tipos de habitación
 -- ─────────────────────────────────────────────────────────────
-insert into public.room_types (name, slug, short_description, description, capacity, base_price, featured, active)
+insert into public.room_types (name, slug, short_description, description, capacity, base_price, active)
 values
   ('Matrimonial', 'matrimonial',
    'Cama matrimonial, ideal para parejas.',
    'Habitación cómoda con cama matrimonial, baño privado con agua caliente, TV por cable y WiFi de alta velocidad. Perfecta para estadías de descanso.',
-   2, 120.00, true, true),
+   2, 120.00, true),
   ('Doble', 'doble',
    'Dos camas individuales, ideal para amigos o colegas.',
    'Habitación amplia con dos camas individuales, baño privado, TV por cable y WiFi. Pensada para viajeros que comparten habitación.',
-   2, 100.00, true, true),
+   2, 100.00, true),
   ('Familiar', 'familiar',
    'Espacio amplio para toda la familia.',
    'Habitación familiar con capacidad para hasta 4 huéspedes, cama matrimonial y camas individuales adicionales, baño privado, TV y WiFi.',
-   4, 180.00, true, true)
+   4, 180.00, true)
 on conflict (slug) do nothing;
 
 -- Matrimonial y Doble se ofrecen "solo por horas" (paquete fijo:
@@ -49,7 +49,7 @@ from (
   values
     ('101', 'matrimonial', '1', 'available'),
     ('102', 'matrimonial', '1', 'available'),
-    ('103', 'matrimonial', '1', 'maintenance'),
+    ('103', 'matrimonial', '1', 'disabled'),
     ('201', 'doble', '2', 'available'),
     ('202', 'doble', '2', 'available'),
     ('301', 'familiar', '3', 'available')

@@ -7,7 +7,7 @@ import { supabase } from "../lib/supabaseClient";
  */
 
 const ROOM_TYPE_COLUMNS = `id, name, slug, short_description, description, capacity, base_price,
-  allows_hourly, hourly_price, hourly_duration_hours, featured, active,
+  allows_hourly, hourly_price, hourly_duration_hours, active,
   on_promotion, promo_price, promo_starts_at, promo_ends_at`;
 
 export async function fetchActiveRoomTypesWithImages() {
@@ -15,7 +15,6 @@ export async function fetchActiveRoomTypesWithImages() {
     .from("room_types")
     .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order )`)
     .eq("active", true)
-    .order("featured", { ascending: false })
     .order("base_price", { ascending: true });
 
   if (error) throw error;

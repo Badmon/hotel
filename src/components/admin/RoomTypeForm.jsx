@@ -33,7 +33,6 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
   const [promoPrice, setPromoPrice] = useState(initialValues?.promo_price ?? "");
   const [promoStartsAt, setPromoStartsAt] = useState(initialValues?.promo_starts_at ?? "");
   const [promoEndsAt, setPromoEndsAt] = useState(initialValues?.promo_ends_at ?? "");
-  const [featured, setFeatured] = useState(initialValues?.featured ?? false);
   const [active, setActive] = useState(initialValues?.active ?? true);
   const [images, setImages] = useState(
     initialValues?.room_images?.length ? initialValues.room_images.map((img) => ({ ...img })) : [emptyImage()]
@@ -151,7 +150,6 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
       promo_price: onPromotion ? Number(promoPrice) : null,
       promo_starts_at: onPromotion && promoStartsAt ? promoStartsAt : null,
       promo_ends_at: onPromotion && promoEndsAt ? promoEndsAt : null,
-      featured,
       active,
     };
 
@@ -333,15 +331,6 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
       </div>
 
       <div className="flex flex-wrap gap-6">
-        <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-          <input
-            type="checkbox"
-            checked={featured}
-            onChange={(e) => setFeatured(e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300"
-          />
-          Destacada en la home
-        </label>
         <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
           <input
             type="checkbox"

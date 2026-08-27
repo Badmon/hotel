@@ -117,7 +117,6 @@ export function RoomTypesAdminPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-lg font-semibold text-slate-900">{roomType.name}</h3>
                   {!roomType.active && <Badge className="bg-slate-200 text-slate-600">Inactiva</Badge>}
-                  {roomType.featured && <Badge className="bg-amber-100 text-amber-800">Destacada</Badge>}
                   <Badge className={roomType.allows_hourly ? "bg-violet-100 text-violet-800" : "bg-sky-100 text-sky-800"}>
                     {roomType.allows_hourly ? "Por horas" : "Por noches"}
                   </Badge>
@@ -135,13 +134,15 @@ export function RoomTypesAdminPage() {
                     <p>
                       <span className="mr-2 line-through">{formatCurrency(roomType.allows_hourly ? roomType.hourly_price : roomType.base_price)}</span>
                       <span className="font-semibold text-emerald-700">
-                        {formatCurrency(roomType.promo_price)} {roomType.allows_hourly ? "por paquete" : "/ noche"}
+                        {formatCurrency(roomType.promo_price)} {roomType.allows_hourly
+                          ? `/ ${roomType.hourly_duration_hours} ${roomType.hourly_duration_hours === 1 ? "hora" : "horas"}`
+                          : "/ noche"}
                       </span>
                     </p>
                   ) : !roomType.allows_hourly ? (
                     <p className="font-semibold text-slate-900">{formatCurrency(roomType.base_price)} / noche</p>
                   ) : null}
-                  {roomType.allows_hourly && (
+                  {roomType.allows_hourly && !roomType.on_promotion && (
                     <p className="font-semibold text-violet-700">
                       {formatCurrency(roomType.hourly_price)} por {roomType.hourly_duration_hours}{" "}
                       {roomType.hourly_duration_hours === 1 ? "hora" : "horas"}

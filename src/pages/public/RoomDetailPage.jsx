@@ -99,7 +99,11 @@ export function RoomDetailPage() {
             <p className="flex items-baseline gap-2">
               <span className="text-base text-slate-400 line-through">{formatCurrency(roomType.allows_hourly ? roomType.hourly_price : roomType.base_price)}</span>
               <span className="text-2xl font-bold text-amber-700">{formatCurrency(roomType.promo_price)}</span>
-              <span className="text-sm font-normal text-slate-500">{roomType.allows_hourly ? "por paquete" : "/ noche"}</span>
+              <span className="text-sm font-normal text-slate-500">
+                {roomType.allows_hourly
+                  ? `/ ${roomType.hourly_duration_hours} ${roomType.hourly_duration_hours === 1 ? "hora" : "horas"}`
+                  : "/ noche"}
+              </span>
             </p>
           ) : !roomType.allows_hourly ? (
             <p className="text-2xl font-bold text-slate-900">
