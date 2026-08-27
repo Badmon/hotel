@@ -33,12 +33,12 @@ export function MainBanner() {
             >
               Ver habitaciones
             </Link>
-            <a
-              href="#buscar-disponibilidad"
+            <Link
+              to="/habitaciones"
               className="rounded-lg bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--color-primary-dark)]"
             >
               Reservar ahora
-            </a>
+            </Link>
           </div>
         </div>
       </div>

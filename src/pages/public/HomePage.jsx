@@ -1,6 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { MainBanner } from "../../components/public/MainBanner";
-import { AvailabilitySearch } from "../../components/public/AvailabilitySearch";
 import { RoomCard } from "../../components/public/RoomCard";
 import { HourlyRoomCard } from "../../components/public/HourlyRoomCard";
 import { PromotionRoomCard } from "../../components/public/PromotionRoomCard";
@@ -11,11 +10,9 @@ import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { useRooms } from "../../hooks/useRooms";
 import { siteConfig } from "../../config/siteConfig";
-import { BOOKING_MODE } from "../../constants/bookingMode";
 import { isPromotionActive } from "../../utils/promotions";
 
 export function HomePage() {
-  const navigate = useNavigate();
   const { roomTypes, status, error } = useRooms();
 
   const nightlyRoomTypes = roomTypes.filter((room) => !room.allows_hourly);
@@ -24,32 +21,9 @@ export function HomePage() {
   const hourlyRoomsToShow = hourlyRoomTypes.slice(0, 3);
   const promotedRoomsToShow = roomTypes.filter(isPromotionActive).slice(0, 3);
 
-  function handleSearch(criteria) {
-    const params =
-      criteria.bookingMode === BOOKING_MODE.HOURLY
-        ? {
-            mode: BOOKING_MODE.HOURLY,
-            checkIn: criteria.checkInDate,
-            startTime: criteria.startTime,
-            guests: String(criteria.guestCount),
-          }
-        : {
-            mode: BOOKING_MODE.NIGHTLY,
-            checkIn: criteria.checkInDate,
-            checkOut: criteria.checkOutDate,
-            guests: String(criteria.guestCount),
-          };
-
-    navigate(`/habitaciones?${new URLSearchParams(params).toString()}`);
-  }
-
   return (
     <>
       <MainBanner />
-
-      <section id="buscar-disponibilidad" className="mx-auto -mt-2 max-w-5xl px-4">
-        <AvailabilitySearch onSubmit={handleSearch} />
-      </section>
 
       {status === "success" && promotedRoomsToShow.length > 0 && (
         <section className="bg-amber-50 py-16">
