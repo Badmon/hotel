@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Hero } from "../../components/public/Hero";
+import { MainBanner } from "../../components/public/MainBanner";
 import { AvailabilitySearch } from "../../components/public/AvailabilitySearch";
 import { RoomCard } from "../../components/public/RoomCard";
 import { HourlyRoomCard } from "../../components/public/HourlyRoomCard";
@@ -45,7 +45,7 @@ export function HomePage() {
 
   return (
     <>
-      <Hero />
+      <MainBanner />
 
       <section id="buscar-disponibilidad" className="mx-auto -mt-2 max-w-5xl px-4">
         <AvailabilitySearch onSubmit={handleSearch} />
