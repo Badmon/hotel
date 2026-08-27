@@ -191,30 +191,90 @@ export async function updateRoomType(id, roomType, images) {
 }
 
 export async function deleteRoomType(id) {
+  const { data: images } = await supabase.from("room_images").select("image_url").eq("room_type_id", id);
+
   const { error } = await supabase.from("room_types").delete().eq("id", id);
   if (error) throw translateDeleteError(error, "tipo de habitación");
+
+  await deleteRoomImageFiles((images ?? []).map((image) => image.image_url));
 }
 
 /**
  * Reemplaza por completo las imágenes de un tipo de habitación. Más
  * simple y suficiente para este panel que llevar un diff fila por
  * fila: la cantidad de imágenes por tipo siempre es pequeña.
+ *
+ * Antes de reemplazar, guarda las URLs anteriores para poder borrar
+ * del bucket las que ya no queden referenciadas — evita acumular
+ * archivos huérfanos cada vez que se reemplaza una foto.
  */
 async function replaceRoomImages(roomTypeId, images) {
+  const { data: existing } = await supabase.from("room_images").select("image_url").eq("room_type_id", roomTypeId);
+
   const { error: deleteError } = await supabase.from("room_images").delete().eq("room_type_id", roomTypeId);
   if (deleteError) throw deleteError;
 
-  if (!images || images.length === 0) return;
+  if (images && images.length > 0) {
+    const rows = images.map((image, index) => ({
+      room_type_id: roomTypeId,
+      image_url: image.image_url,
+      alt_text: image.alt_text || null,
+      display_order: index,
+    }));
 
-  const rows = images.map((image, index) => ({
-    room_type_id: roomTypeId,
-    image_url: image.image_url,
-    alt_text: image.alt_text || null,
-    display_order: index,
-  }));
+    const { error: insertError } = await supabase.from("room_images").insert(rows);
+    if (insertError) throw insertError;
+  }
 
-  const { error: insertError } = await supabase.from("room_images").insert(rows);
-  if (insertError) throw insertError;
+  const keptUrls = new Set((images ?? []).map((image) => image.image_url));
+  const removedUrls = (existing ?? []).map((row) => row.image_url).filter((url) => !keptUrls.has(url));
+  await deleteRoomImageFiles(removedUrls);
+}
+
+const ROOM_IMAGES_BUCKET = "room-images";
+const ROOM_IMAGES_MAX_BYTES = 5 * 1024 * 1024;
+
+/** Sube una foto al bucket de Storage y devuelve su URL pública, lista para guardar en image_url. */
+export async function uploadRoomImage(file) {
+  if (file.size > ROOM_IMAGES_MAX_BYTES) {
+    throw new Error("La imagen no debe superar 5MB.");
+  }
+
+  const extension = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
+  const path = `${crypto.randomUUID()}.${extension}`;
+
+  const { error } = await supabase.storage.from(ROOM_IMAGES_BUCKET).upload(path, file, {
+    cacheControl: "3600",
+  });
+  if (error) throw error;
+
+  const { data } = supabase.storage.from(ROOM_IMAGES_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/**
+ * Borra del bucket los archivos detrás de estas URLs — "best effort":
+ * ignora las que no vengan de nuestro bucket (rutas locales de
+ * public/images/ o URLs externas, que nunca se tocan) y no lanza si
+ * falla, para no interrumpir la operación principal (guardar/borrar un
+ * tipo de habitación) por un problema de limpieza.
+ */
+export async function deleteRoomImageFiles(urls) {
+  const paths = (urls ?? []).map(extractRoomImageStoragePath).filter(Boolean);
+  if (paths.length === 0) return;
+
+  try {
+    await supabase.storage.from(ROOM_IMAGES_BUCKET).remove(paths);
+  } catch {
+    // Limpieza best-effort: un archivo huérfano ocasional no es grave.
+  }
+}
+
+function extractRoomImageStoragePath(url) {
+  if (!url) return null;
+  const marker = `/storage/v1/object/public/${ROOM_IMAGES_BUCKET}/`;
+  const index = url.indexOf(marker);
+  return index === -1 ? null : url.slice(index + marker.length);
 }
 
 /** Traduce el error de FK (23503) que Postgres lanza al borrar un registro todavía referenciado. */

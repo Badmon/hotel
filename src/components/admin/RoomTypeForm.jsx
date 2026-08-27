@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Input } from "../common/Input";
 import { DateInput } from "../common/DateInput";
 import { Textarea } from "../common/Textarea";
 import { Button } from "../common/Button";
+import { ErrorMessage } from "../common/ErrorMessage";
 import { slugify } from "../../utils/slugify";
+import { uploadRoomImage, deleteRoomImageFiles } from "../../services/roomsService";
 
 const emptyImage = () => ({ image_url: "", alt_text: "" });
 
@@ -34,6 +36,14 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
     initialValues?.room_images?.length ? initialValues.room_images.map((img) => ({ ...img })) : [emptyImage()]
   );
   const [errors, setErrors] = useState({});
+  const [uploadingIndex, setUploadingIndex] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
+
+  // Archivos subidos al bucket durante esta sesión de edición, para
+  // poder limpiarlos si se reemplazan antes de guardar o si se
+  // cancela el formulario — de lo contrario quedarían huérfanos en
+  // Storage sin que ninguna fila los referencie nunca.
+  const sessionUploadedUrls = useRef([]);
 
   function handleNameChange(value) {
     setName(value);
@@ -44,12 +54,36 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
     setImages((current) => current.map((img, i) => (i === index ? { ...img, [field]: value } : img)));
   }
 
+  async function handleFileSelect(index, file) {
+    if (!file) return;
+    setUploadError(null);
+    setUploadingIndex(index);
+    try {
+      const url = await uploadRoomImage(file);
+      sessionUploadedUrls.current.push(url);
+      handleImageChange(index, "image_url", url);
+    } catch (err) {
+      setUploadError(err.message || "No fue posible subir la imagen.");
+    } finally {
+      setUploadingIndex(null);
+    }
+  }
+
   function addImageRow() {
     setImages((current) => [...current, emptyImage()]);
   }
 
   function removeImageRow(index) {
     setImages((current) => current.filter((_, i) => i !== index));
+  }
+
+  function handleCancel() {
+    // Nada de lo subido en esta sesión llegó a guardarse: se limpia
+    // del bucket para no dejar archivos huérfanos.
+    if (sessionUploadedUrls.current.length > 0) {
+      deleteRoomImageFiles(sessionUploadedUrls.current);
+    }
+    onCancel();
   }
 
   function validate() {
@@ -109,6 +143,15 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
     const cleanImages = images
       .map((img) => ({ image_url: img.image_url.trim(), alt_text: img.alt_text?.trim() || "" }))
       .filter((img) => img.image_url);
+
+    // Un archivo subido en esta sesión y luego reemplazado por otro
+    // antes de guardar nunca llega a quedar en cleanImages: se limpia
+    // del bucket para no dejarlo huérfano.
+    const keptUrls = new Set(cleanImages.map((img) => img.image_url));
+    const orphanedUploads = sessionUploadedUrls.current.filter((url) => !keptUrls.has(url));
+    if (orphanedUploads.length > 0) {
+      deleteRoomImageFiles(orphanedUploads);
+    }
 
     onSubmit(roomType, cleanImages);
   }
@@ -275,39 +318,53 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
 
       <div>
         <p className="mb-2 text-sm font-medium text-slate-700">Imágenes</p>
-        <div className="space-y-2">
+        {uploadError && <ErrorMessage message={uploadError} className="mb-2" />}
+        <div className="space-y-3">
           {images.map((image, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                id={`image-url-${index}`}
-                placeholder="/images/rooms/ejemplo.jpg"
-                value={image.image_url}
-                onChange={(e) => handleImageChange(index, "image_url", e.target.value)}
-                className="flex-[2]"
-              />
-              <Input
-                id={`image-alt-${index}`}
-                placeholder="Texto alternativo"
-                value={image.alt_text}
-                onChange={(e) => handleImageChange(index, "alt_text", e.target.value)}
-                className="flex-1"
-              />
-              <Button type="button" variant="ghost" size="sm" onClick={() => removeImageRow(index)}>
-                Quitar
-              </Button>
+            <div key={index} className="flex flex-wrap items-start gap-3 rounded-lg border border-slate-200 p-3">
+              {image.image_url && (
+                <img src={image.image_url} alt="" className="h-14 w-14 flex-shrink-0 rounded object-cover" />
+              )}
+              <div className="min-w-[200px] flex-1 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="cursor-pointer rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    {uploadingIndex === index ? "Subiendo..." : "Subir imagen"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingIndex !== null}
+                      onChange={(e) => handleFileSelect(index, e.target.files?.[0])}
+                    />
+                  </label>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => removeImageRow(index)}>
+                    Quitar
+                  </Button>
+                </div>
+                <Input
+                  id={`image-url-${index}`}
+                  placeholder="O pega una URL / ruta de public/images/rooms/"
+                  value={image.image_url}
+                  onChange={(e) => handleImageChange(index, "image_url", e.target.value)}
+                />
+                <Input
+                  id={`image-alt-${index}`}
+                  placeholder="Texto alternativo"
+                  value={image.alt_text}
+                  onChange={(e) => handleImageChange(index, "alt_text", e.target.value)}
+                />
+              </div>
             </div>
           ))}
         </div>
         <Button type="button" variant="secondary" size="sm" onClick={addImageRow} className="mt-2">
           + Agregar imagen
         </Button>
-        <p className="mt-1 text-xs text-slate-500">
-          Usa rutas de public/images/rooms/ (ej: /images/rooms/matrimonial-1.svg) o URLs completas.
-        </p>
+        <p className="mt-1 text-xs text-slate-500">Máximo 5MB por imagen.</p>
       </div>
 
       <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
-        <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
+        <Button type="button" variant="ghost" onClick={handleCancel} disabled={isSubmitting}>
           Cancelar
         </Button>
         <Button type="submit" isLoading={isSubmitting}>
