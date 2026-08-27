@@ -43,7 +43,7 @@ export const siteConfig = {
 
   images: {
     logo: "/images/branding/logo.svg",
-    hero: "/images/hotel/hero.svg",
+    hero: "/images/hotel/hotel-home.jpg",
     about: "/images/hotel/about.svg",
     location: "/images/hotel/location.svg",
     placeholderRoom: "/images/rooms/placeholder.svg",
