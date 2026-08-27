@@ -25,14 +25,14 @@ export function RoomCard({ roomType, reservationHref, bookingMode = BOOKING_MODE
           <span>Hasta {roomType.capacity} huéspedes</span>
           <span className="font-semibold text-slate-900">{priceLabel}</span>
         </div>
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex flex-col gap-2">
           <Link
             to={`/habitaciones/${roomType.slug}`}
-            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             Ver habitación
           </Link>
-          <Link to={reservationHref ?? `/habitaciones/${roomType.slug}`} className="flex-1">
+          <Link to={reservationHref ?? `/habitaciones/${roomType.slug}`} className="w-full">
             <Button className="w-full" size="sm">
               Reservar
             </Button>

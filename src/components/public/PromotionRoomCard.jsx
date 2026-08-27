@@ -34,14 +34,14 @@ export function PromotionRoomCard({ roomType }) {
         </div>
         <p className="mt-1 text-xs text-slate-500">Hasta {roomType.capacity} huéspedes</p>
 
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex flex-col gap-2">
           <Link
             to={`/habitaciones/${roomType.slug}`}
-            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             Ver habitación
           </Link>
-          <Link to={`/habitaciones/${roomType.slug}/reservar`} className="flex-1">
+          <Link to={`/habitaciones/${roomType.slug}/reservar`} className="w-full">
             <Button className="w-full !bg-amber-600 hover:!bg-amber-700" size="sm">
               Aprovechar oferta
             </Button>
