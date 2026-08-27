@@ -70,7 +70,9 @@ export function RoomsPage() {
   }
 
   const isSearchMode = Boolean(initialCriteria);
-  const catalogMode = searchParams.get("modalidad") === "hourly" ? "hourly" : searchParams.get("modalidad") === "nightly" ? "nightly" : null;
+  const catalogMode = ["hourly", "nightly", "promotion"].includes(searchParams.get("modalidad"))
+    ? searchParams.get("modalidad")
+    : null;
   const bookingMode = initialCriteria?.bookingMode ?? BOOKING_MODE.NIGHTLY;
   const isHourlySearch = isSearchMode && bookingMode === BOOKING_MODE.HOURLY;
 
@@ -86,7 +88,7 @@ export function RoomsPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-        {catalogMode === "hourly" ? "Habitaciones por horas" : catalogMode === "nightly" ? "Habitaciones por noche" : "Habitaciones"}
+        {catalogMode === "hourly" ? "Habitaciones por horas" : catalogMode === "nightly" ? "Habitaciones por noche" : catalogMode === "promotion" ? "Habitaciones en promoción" : "Habitaciones"}
       </h1>
       <p className="mt-2 text-slate-600">
         {catalogMode
@@ -144,17 +146,27 @@ function RoomsCatalog({ roomTypes, mode }) {
     ? roomTypes.filter((room) => room.allows_hourly)
     : mode === "nightly"
       ? roomTypes.filter((room) => !room.allows_hourly)
-      : roomTypes;
+      : mode === "promotion"
+        ? roomTypes.filter(isPromotionActive)
+        : roomTypes;
   const hourlyRoomTypes = filteredRoomTypes.filter((room) => room.allows_hourly);
   const nightlyRoomTypes = filteredRoomTypes.filter((room) => !room.allows_hourly);
   const promotedRoomTypes = filteredRoomTypes.filter(isPromotionActive);
 
   if (filteredRoomTypes.length === 0) {
-    return <EmptyState title={`Todavía no hay habitaciones ${mode === "hourly" ? "por horas" : "por noche"} publicadas`} />;
+    return <EmptyState title={`Todavía no hay habitaciones ${mode === "hourly" ? "por horas" : mode === "promotion" ? "en promoción" : "por noche"} publicadas`} />;
   }
 
   return (
     <div className="space-y-14">
+      {mode === "promotion" && (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {promotedRoomTypes.map((roomType) => (
+            <PromotionRoomCard key={roomType.id} roomType={roomType} />
+          ))}
+        </div>
+      )}
+
       {mode === null && promotedRoomTypes.length > 0 && (
         <div className="rounded-2xl bg-amber-50 p-5 sm:p-8">
           <h2 className="text-xl font-semibold text-slate-900">Promociones</h2>
@@ -166,7 +178,7 @@ function RoomsCatalog({ roomTypes, mode }) {
         </div>
       )}
 
-      {nightlyRoomTypes.length > 0 && <div>
+      {mode !== "promotion" && nightlyRoomTypes.length > 0 && <div>
         <h2 className="text-xl font-semibold text-slate-900">Por noche</h2>
         <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {nightlyRoomTypes.map((roomType) => (
@@ -175,7 +187,7 @@ function RoomsCatalog({ roomTypes, mode }) {
         </div>
       </div>}
 
-      {hourlyRoomTypes.length > 0 && (
+      {mode !== "promotion" && hourlyRoomTypes.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold text-slate-900">Por horas</h2>
           <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

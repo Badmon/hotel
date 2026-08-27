@@ -19,7 +19,8 @@ export function HomePage() {
   const nightlyRoomsToShow = nightlyRoomTypes.slice(0, 3);
   const hourlyRoomTypes = roomTypes.filter((room) => room.allows_hourly);
   const hourlyRoomsToShow = hourlyRoomTypes.slice(0, 3);
-  const promotedRoomsToShow = roomTypes.filter(isPromotionActive).slice(0, 3);
+  const promotedRoomTypes = roomTypes.filter(isPromotionActive);
+  const promotedRoomsToShow = promotedRoomTypes.slice(0, 3);
 
   return (
     <>
@@ -37,32 +38,35 @@ export function HomePage() {
               {promotedRoomsToShow.map((roomType) => (
                 <PromotionRoomCard key={roomType.id} roomType={roomType} />
               ))}
+              {promotedRoomTypes.length >= 4 && <ExploreMoreCard count={promotedRoomTypes.length} mode="promotion" />}
             </div>
           </div>
         </section>
       )}
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">Habitaciones</h2>
-          <p className="mt-2 text-slate-600">
-            {nightlyRoomTypes.length} {nightlyRoomTypes.length === 1 ? "opción disponible" : "opciones disponibles"} para tu estadía.
-          </p>
-        </div>
+      <section className="bg-teal-50 py-16">
+        <div className="mx-auto max-w-6xl px-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">Habitaciones</h2>
+            <p className="mt-2 text-slate-600">
+              {nightlyRoomTypes.length} {nightlyRoomTypes.length === 1 ? "opción disponible" : "opciones disponibles"} para tu estadía.
+            </p>
+          </div>
 
-        <div className="mt-8">
-          {status === "loading" && <LoadingSpinner label="Cargando habitaciones..." />}
-          {status === "error" && <ErrorMessage message={error} />}
-          {status === "success" && (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {nightlyRoomsToShow.map((roomType) => (
-                <RoomCard key={roomType.id} roomType={roomType} />
-              ))}
-              {nightlyRoomTypes.length > nightlyRoomsToShow.length && (
-                <ExploreMoreCard count={nightlyRoomTypes.length} mode="nightly" />
-              )}
-            </div>
-          )}
+          <div className="mt-8">
+            {status === "loading" && <LoadingSpinner label="Cargando habitaciones..." />}
+            {status === "error" && <ErrorMessage message={error} />}
+            {status === "success" && (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {nightlyRoomsToShow.map((roomType) => (
+                  <RoomCard key={roomType.id} roomType={roomType} />
+                ))}
+                {nightlyRoomTypes.length >= 4 && (
+                  <ExploreMoreCard count={nightlyRoomTypes.length} mode="nightly" />
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
@@ -80,7 +84,7 @@ export function HomePage() {
               {hourlyRoomsToShow.map((roomType) => (
                 <HourlyRoomCard key={roomType.id} roomType={roomType} />
               ))}
-              {hourlyRoomTypes.length > hourlyRoomsToShow.length && (
+              {hourlyRoomTypes.length >= 4 && (
                 <ExploreMoreCard count={hourlyRoomTypes.length} mode="hourly" />
               )}
             </div>
@@ -99,7 +103,8 @@ export function HomePage() {
 
 function ExploreMoreCard({ count, mode }) {
   const isHourly = mode === "hourly";
-  const label = isHourly ? "por horas" : "por noche";
+  const isPromotion = mode === "promotion";
+  const label = isHourly ? "por horas" : isPromotion ? "en promoción" : "por noche";
 
   return (
     <Link
@@ -107,10 +112,12 @@ function ExploreMoreCard({ count, mode }) {
       className={`group flex items-center gap-2 rounded-xl border-2 border-dashed px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-md sm:col-span-2 lg:col-span-3 ${
         isHourly
           ? "border-violet-300 bg-violet-100/60 hover:border-violet-500"
+          : isPromotion
+            ? "border-amber-300 bg-amber-100/60 hover:border-amber-500"
           : "border-sky-300 bg-sky-50 hover:border-sky-500"
       }`}
     >
-      <span className={`text-xs font-semibold ${isHourly ? "text-violet-700" : "text-sky-700"}`}>Más opciones:</span>
+      <span className={`text-xs font-semibold ${isHourly ? "text-violet-700" : isPromotion ? "text-amber-700" : "text-sky-700"}`}>Más opciones:</span>
       <span className="text-sm font-bold text-slate-900 sm:text-base">
         Ver las {count} habitaciones {label}
         <span className="ml-2 inline-block transition-transform group-hover:translate-x-1">→</span>
