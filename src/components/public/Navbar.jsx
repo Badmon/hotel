@@ -16,13 +16,13 @@ export function Navbar() {
         <div className="hidden items-center gap-6 md:flex">
           {siteConfig.nav.map((item) =>
             item.href.includes("#") ? (
-              <a
+              <Link
                 key={item.href}
-                href={item.href}
+                to={item.href}
                 className="text-sm font-medium text-slate-600 transition-colors hover:text-[var(--color-primary)]"
               >
                 {item.label}
-              </a>
+              </Link>
             ) : (
               <NavLink
                 key={item.href}
@@ -67,14 +67,14 @@ export function Navbar() {
           <div className="flex flex-col gap-3">
             {siteConfig.nav.map((item) =>
               item.href.includes("#") ? (
-                <a
+                <Link
                   key={item.href}
-                  href={item.href}
+                  to={item.href}
                   onClick={() => setIsMenuOpen(false)}
                   className="text-sm font-medium text-slate-700"
                 >
                   {item.label}
-                </a>
+                </Link>
               ) : (
                 <NavLink
                   key={item.href}

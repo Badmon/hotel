@@ -18,9 +18,9 @@ export function Footer() {
             {siteConfig.nav.map((item) => (
               <li key={item.href}>
                 {item.href.includes("#") ? (
-                  <a href={item.href} className="hover:text-white">
+                  <Link to={item.href} className="hover:text-white">
                     {item.label}
-                  </a>
+                  </Link>
                 ) : (
                   <Link to={item.href} className="hover:text-white">
                     {item.label}
