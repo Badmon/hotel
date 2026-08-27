@@ -18,8 +18,6 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
   const isEditing = Boolean(initialValues?.id);
 
   const [name, setName] = useState(initialValues?.name ?? "");
-  const [slug, setSlug] = useState(initialValues?.slug ?? "");
-  const [slugTouched, setSlugTouched] = useState(isEditing);
   const [shortDescription, setShortDescription] = useState(initialValues?.short_description ?? "");
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [capacity, setCapacity] = useState(initialValues?.capacity ?? 2);
@@ -47,11 +45,6 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
   // cancela el formulario — de lo contrario quedarían huérfanos en
   // Storage sin que ninguna fila los referencie nunca.
   const sessionUploadedUrls = useRef([]);
-
-  function handleNameChange(value) {
-    setName(value);
-    if (!slugTouched) setSlug(slugify(value));
-  }
 
   function handleImageChange(index, field, value) {
     setImages((current) => current.map((img, i) => (i === index ? { ...img, [field]: value } : img)));
@@ -92,10 +85,7 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
   function validate() {
     const newErrors = {};
     if (!name.trim()) newErrors.name = "El nombre es obligatorio.";
-    if (!slug.trim()) newErrors.slug = "El slug es obligatorio.";
-    if (!/^[a-z0-9-]+$/.test(slug.trim())) {
-      newErrors.slug = "Solo minúsculas, números y guiones.";
-    }
+    if (!isEditing && !slugify(name)) newErrors.name = "Ingresa un nombre que pueda identificarse.";
     if (!Number.isInteger(Number(capacity)) || Number(capacity) < 1) {
       newErrors.capacity = "La capacidad debe ser al menos 1.";
     }
@@ -138,7 +128,8 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
 
     const roomType = {
       name: name.trim(),
-      slug: slug.trim(),
+      // El slug es un dato técnico heredado; la URL pública usa el ID.
+      slug: isEditing ? initialValues.slug : slugify(name),
       short_description: shortDescription.trim() || null,
       description: description.trim() || null,
       capacity: Number(capacity),
@@ -185,28 +176,14 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
         </div>
       </fieldset>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Input
-          id="room-type-name"
-          label="Nombre"
-          value={name}
-          onChange={(e) => handleNameChange(e.target.value)}
-          error={errors.name}
-          required
-        />
-        <Input
-          id="room-type-slug"
-          label="Slug (usado en la URL)"
-          value={slug}
-          onChange={(e) => {
-            setSlugTouched(true);
-            setSlug(e.target.value);
-          }}
-          error={errors.slug}
-          hint="Solo minúsculas, números y guiones, ej: matrimonial"
-          required
-        />
-      </div>
+      <Input
+        id="room-type-name"
+        label="Nombre"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        error={errors.name}
+        required
+      />
 
       <Input
         id="room-type-short-description"

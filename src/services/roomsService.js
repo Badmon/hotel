@@ -27,11 +27,11 @@ export async function fetchActiveRoomTypesWithImages() {
   }));
 }
 
-export async function fetchRoomTypeBySlug(slug) {
+export async function fetchRoomTypeById(id) {
   const { data, error } = await supabase
     .from("room_types")
     .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order )`)
-    .eq("slug", slug)
+    .eq("id", id)
     .eq("active", true)
     .maybeSingle();
 

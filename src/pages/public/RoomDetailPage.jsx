@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { fetchRoomTypeBySlug } from "../../services/roomsService";
+import { fetchRoomTypeById } from "../../services/roomsService";
 import { siteConfig } from "../../config/siteConfig";
 import { formatCurrency } from "../../utils/currency";
 import { isPromotionActive } from "../../utils/promotions";
@@ -10,7 +10,7 @@ import { EmptyState } from "../../components/common/EmptyState";
 import { Button } from "../../components/common/Button";
 
 export function RoomDetailPage() {
-  const { slug } = useParams();
+  const { id } = useParams();
   const [searchParams] = useSearchParams();
   const [roomType, setRoomType] = useState(null);
   const [status, setStatus] = useState("loading");
@@ -19,7 +19,7 @@ export function RoomDetailPage() {
     let isMounted = true;
     setStatus("loading");
 
-    fetchRoomTypeBySlug(slug)
+    fetchRoomTypeById(id)
       .then((data) => {
         if (!isMounted) return;
         setRoomType(data);
@@ -32,7 +32,7 @@ export function RoomDetailPage() {
     return () => {
       isMounted = false;
     };
-  }, [slug]);
+  }, [id]);
 
   if (status === "loading") return <LoadingSpinner label="Cargando habitación..." className="min-h-[50vh]" />;
   if (status === "error") return <ErrorMessage message="No fue posible cargar esta habitación." className="mx-auto max-w-2xl my-16" />;
@@ -118,7 +118,7 @@ export function RoomDetailPage() {
               </span>
             </p>
           )}
-          <Link to={`/habitaciones/${roomType.slug}/reservar${reserveQuery ? `?${reserveQuery}` : ""}`}>
+          <Link to={`/habitaciones/${roomType.id}/reservar${reserveQuery ? `?${reserveQuery}` : ""}`}>
             <Button className="mt-4 w-full">Reservar</Button>
           </Link>
           <p className="mt-3 text-xs text-slate-500">

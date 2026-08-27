@@ -29,8 +29,8 @@ export default function App() {
           <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/habitaciones" element={<RoomsPage />} />
-            <Route path="/habitaciones/:slug" element={<RoomDetailPage />} />
-            <Route path="/habitaciones/:slug/reservar" element={<ReservationRequestPage />} />
+            <Route path="/habitaciones/:id" element={<RoomDetailPage />} />
+            <Route path="/habitaciones/:id/reservar" element={<ReservationRequestPage />} />
             <Route path="/reserva/confirmada" element={<ReservationSuccessPage />} />
             <Route path="/reserva/buscar" element={<FindReservationPage />} />
           </Route>

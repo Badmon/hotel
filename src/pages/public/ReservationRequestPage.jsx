@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { fetchRoomTypeBySlug } from "../../services/roomsService";
+import { fetchRoomTypeById } from "../../services/roomsService";
 import { createReservation } from "../../services/reservationsService";
 import { ReservationForm } from "../../components/public/ReservationForm";
 import { ReservationSummary } from "../../components/public/ReservationSummary";
@@ -12,7 +12,7 @@ import { BOOKING_MODE } from "../../constants/bookingMode";
 import { buildLocalDateTimeIso, addHoursIso } from "../../utils/dates";
 
 export function ReservationRequestPage() {
-  const { slug } = useParams();
+  const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -25,7 +25,7 @@ export function ReservationRequestPage() {
 
   useEffect(() => {
     let isMounted = true;
-    fetchRoomTypeBySlug(slug)
+    fetchRoomTypeById(id)
       .then((data) => {
         if (!isMounted) return;
         setRoomType(data);
@@ -35,7 +35,7 @@ export function ReservationRequestPage() {
     return () => {
       isMounted = false;
     };
-  }, [slug]);
+  }, [id]);
 
   if (loadStatus === "loading") return <LoadingSpinner label="Cargando..." className="min-h-[50vh]" />;
   if (loadStatus === "error") return <ErrorMessage message="No fue posible cargar la habitación." className="mx-auto max-w-2xl my-16" />;

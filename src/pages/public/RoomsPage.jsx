@@ -117,13 +117,13 @@ export function RoomsPage() {
                 <HourlyRoomCard
                   key={roomType.id}
                   roomType={roomType}
-                  reservationHref={`/habitaciones/${roomType.slug}/reservar?${searchParams.toString()}`}
+                  reservationHref={`/habitaciones/${roomType.id}/reservar?${searchParams.toString()}`}
                 />
               ) : (
                 <RoomCard
                   key={roomType.id}
                   roomType={roomType}
-                  reservationHref={`/habitaciones/${roomType.slug}/reservar?${searchParams.toString()}`}
+                  reservationHref={`/habitaciones/${roomType.id}/reservar?${searchParams.toString()}`}
                 />
               )
             )}

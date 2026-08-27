@@ -42,12 +42,12 @@ export function PromotionRoomCard({ roomType }) {
 
         <div className="mt-4 flex flex-col gap-2">
           <Link
-            to={`/habitaciones/${roomType.slug}`}
+            to={`/habitaciones/${roomType.id}`}
             className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             Ver habitación
           </Link>
-          <Link to={`/habitaciones/${roomType.slug}/reservar${isHourly ? "?mode=hourly" : ""}`} className="w-full">
+          <Link to={`/habitaciones/${roomType.id}/reservar${isHourly ? "?mode=hourly" : ""}`} className="w-full">
             <Button className="w-full !bg-amber-600 hover:!bg-amber-700" size="sm">
               Aprovechar oferta
             </Button>
