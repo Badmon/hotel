@@ -6,7 +6,7 @@ export function LocationSection() {
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">Ubicación</h2>
 
-        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-4 lg:items-center">
+        <div className="mt-3 grid grid-cols-1 gap-8 lg:grid-cols-4 lg:items-start">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Nombre y dirección del hotel
