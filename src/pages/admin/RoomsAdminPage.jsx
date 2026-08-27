@@ -181,7 +181,7 @@ function CreateRoomForm({ roomTypes, onCancel, onCreated }) {
     setIsSubmitting(true);
     setError(null);
     try {
-      await createRoom({ roomNumber: roomNumber.trim(), roomTypeId, floor: floor.trim() });
+      await createRoom({ roomNumber: roomNumber.trim(), roomTypeId: Number(roomTypeId), floor: floor.trim() });
       onCreated();
     } catch (err) {
       setError(

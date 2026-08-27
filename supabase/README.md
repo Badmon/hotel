@@ -34,6 +34,12 @@ Abre **SQL Editor** en el dashboard y ejecuta, en orden, cada archivo de `migrat
 0008_updated_at_triggers.sql
 0009_reservation_rejected_at.sql
 0010_hourly_bookings.sql
+0011_promotions.sql
+0012_find_reservation.sql
+0013_fix_timezone_date_check.sql
+0014_find_reservations_by_contact.sql
+0015_room_images_storage.sql
+0016_sequential_room_ids.sql
 ```
 
 Opción B — Supabase CLI:
