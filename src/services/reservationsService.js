@@ -40,6 +40,21 @@ export async function findReservationByCode(reservationCode, guestEmail) {
   return data?.[0] ?? null;
 }
 
+/**
+ * Búsqueda pública de reservas cuando el huésped perdió el código
+ * mismo: exige correo + teléfono (no solo uno) y devuelve como máximo
+ * las 10 más recientes que coincidan con ambos.
+ */
+export async function findReservationsByContact(guestEmail, guestPhone) {
+  const { data, error } = await supabase.rpc("find_reservations_by_contact", {
+    p_guest_email: guestEmail,
+    p_guest_phone: guestPhone,
+  });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 /** Uso administrativo: listar reservas con filtros. Requiere sesión staff/admin (RLS). */
 export async function fetchReservations({ status, search, fromDate, toDate } = {}) {
   let query = supabase
