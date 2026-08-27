@@ -6,20 +6,14 @@ export function LocationSection() {
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">Ubicación</h2>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">Dirección</p>
-            <p className="mt-1 text-slate-700">{siteConfig.hotel.address}</p>
-            <p className="mt-1 text-slate-600">{siteConfig.hotel.schedule}</p>
-          </div>
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Nombre y dirección del hotel
-            </p>
-            <p className="mt-1 text-slate-700">{siteConfig.hotel.name}</p>
-            <p className="mt-1 text-slate-600">{siteConfig.hotel.address}</p>
-            <p className="mt-1 text-xs text-slate-400">Puedes mostrarle esto a tu taxista.</p>
-          </div>
+        <div className="mt-6">
+          <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Nombre y dirección del hotel
+          </p>
+          <p className="mt-1 text-slate-700">{siteConfig.hotel.name}</p>
+          <p className="mt-1 text-slate-600">{siteConfig.hotel.address}</p>
+          <p className="mt-1 text-slate-600">{siteConfig.hotel.schedule}</p>
+          <p className="mt-1 text-xs text-slate-400">Puedes mostrarle esto a tu taxista.</p>
         </div>
 
         <a
