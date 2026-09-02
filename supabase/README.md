@@ -42,6 +42,7 @@ Abre **SQL Editor** en el dashboard y ejecuta, en orden, cada archivo de `migrat
 0016_sequential_room_ids.sql
 0017_hourly_fixed_package.sql
 0018_exclusive_room_booking_type.sql
+0019_fix_ambiguous_room_type_id.sql
 ```
 
 Opción B — Supabase CLI:

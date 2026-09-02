@@ -1,94 +1,7 @@
--- Un tipo de habitación se reserva en una única modalidad: por noches
--- o como paquete fijo por horas. `allows_hourly` se conserva como el
--- indicador de modalidad para no romper el código ni datos existentes.
+-- Corrige la ambigüedad entre la columna de salida `id` de la función
+-- y `room_types.id`, que provocaba el error PostgreSQL 42702 al crear
+-- una reserva.
 
-begin;
-
-alter table public.room_types
-  alter column base_price drop not null;
-
-alter table public.room_types
-  drop constraint if exists room_types_promotion_price_check,
-  drop constraint if exists room_types_hourly_price_check,
-  drop constraint if exists room_types_hourly_duration_check;
-
--- Los tipos que antes admitían ambas modalidades pasan a ser "por
--- horas", pues esa era la modalidad adicional configurada. Conservan
--- su paquete y dejan de exponer una tarifa nocturna.
-update public.room_types
-set base_price = null
-where allows_hourly = true;
-
--- Una oferta histórica podía haberse calculado contra el precio por
--- noche. Si no es válida contra el nuevo paquete por horas, se
--- desactiva para que el encargado pueda definirla de nuevo.
-update public.room_types
-set on_promotion = false,
-    promo_price = null,
-    promo_starts_at = null,
-    promo_ends_at = null
-where allows_hourly = true
-  and on_promotion = true
-  and (promo_price is null or promo_price >= hourly_price);
-
-alter table public.room_types
-  add constraint room_types_exclusive_booking_type_check
-  check (
-    (allows_hourly = false and base_price is not null and base_price > 0 and hourly_price is null and hourly_duration_hours is null)
-    or
-    (allows_hourly = true and base_price is null and hourly_price is not null and hourly_price > 0 and hourly_duration_hours is not null and hourly_duration_hours > 0)
-  ),
-  add constraint room_types_promotion_price_check
-  check (
-    on_promotion = false
-    or (
-      promo_price is not null and promo_price > 0
-      and promo_price < case when allows_hourly then hourly_price else base_price end
-    )
-  );
-
--- La búsqueda nocturna solo debe devolver tipos de modalidad nocturna.
-create or replace function public.search_available_rooms(
-  p_check_in date,
-  p_check_out date,
-  p_guests integer
-)
-returns table (
-  room_type_id integer,
-  name text,
-  slug text,
-  short_description text,
-  capacity integer,
-  base_price numeric
-)
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select distinct rt.id, rt.name, rt.slug, rt.short_description, rt.capacity, rt.base_price
-  from room_types rt
-  join rooms r on r.room_type_id = rt.id
-  where rt.active = true
-    and rt.allows_hourly = false
-    and r.status = 'available'
-    and rt.capacity >= p_guests
-    and not exists (
-      select 1 from reservations res
-      where res.room_id = r.id
-        and res.status in ('confirmed', 'checked_in')
-        and public.reservation_occupancy(res.booking_mode, res.check_in_date, res.check_out_date, res.check_in_at, res.check_out_at)
-            && tstzrange(
-              p_check_in::timestamp at time zone 'America/Lima',
-              p_check_out::timestamp at time zone 'America/Lima',
-              '[)'
-            )
-    )
-  order by rt.base_price asc;
-$$;
-
--- Refuerza en el servidor que no se pueda crear una reserva nocturna
--- para un tipo por horas, incluso si alguien manipula la URL o la API.
 create or replace function public.create_reservation_atomic(
   p_room_type_id integer,
   p_booking_mode text,
@@ -112,9 +25,15 @@ declare
 begin
   if p_booking_mode not in ('nightly', 'hourly') then raise exception 'INVALID_BOOKING_MODE'; end if;
   if p_guest_count is null or p_guest_count < 1 then raise exception 'INVALID_GUEST_COUNT'; end if;
-  select rt.capacity, rt.active, rt.allows_hourly, rt.hourly_duration_hours into v_capacity, v_active, v_allows_hourly, v_duration from room_types rt where rt.id = p_room_type_id;
+
+  select rt.capacity, rt.active, rt.allows_hourly, rt.hourly_duration_hours
+  into v_capacity, v_active, v_allows_hourly, v_duration
+  from room_types rt
+  where rt.id = p_room_type_id;
+
   if not found or v_active is not true then raise exception 'ROOM_TYPE_NOT_FOUND'; end if;
   if p_guest_count > v_capacity then raise exception 'CAPACITY_EXCEEDED'; end if;
+
   if p_booking_mode = 'nightly' then
     if v_allows_hourly then raise exception 'NIGHTLY_NOT_ALLOWED'; end if;
     if p_check_in is null or p_check_out is null or p_check_out <= p_check_in or p_check_in < current_date - 1 then raise exception 'INVALID_DATES'; end if;
@@ -125,11 +44,13 @@ begin
     v_check_out_at := p_check_in_at + (v_duration || ' hours')::interval;
     v_check_in_date := p_check_in_at::date; v_check_out_date := v_check_out_at::date + 1;
   end if;
+
   v_requested_range := public.reservation_occupancy(p_booking_mode, v_check_in_date, v_check_out_date, p_check_in_at, v_check_out_at);
   select r.id into v_room_id from rooms r where r.room_type_id = p_room_type_id and r.status = 'available' and not exists (
     select 1 from reservations res where res.room_id = r.id and res.status in ('confirmed', 'checked_in')
       and public.reservation_occupancy(res.booking_mode, res.check_in_date, res.check_out_date, res.check_in_at, res.check_out_at) && v_requested_range
   ) order by r.room_number for update skip locked limit 1;
+
   if v_room_id is null then raise exception 'NO_AVAILABILITY'; end if;
   v_code := public.generate_reservation_code();
   begin
@@ -137,8 +58,7 @@ begin
     values (v_code, v_room_id, p_booking_mode, p_guest_name, p_guest_email, p_guest_phone, p_guest_document, p_guest_count, v_check_in_date, v_check_out_date, case when p_booking_mode = 'hourly' then p_check_in_at end, case when p_booking_mode = 'hourly' then v_check_out_at end, p_notes, 'pending')
     returning reservations.id into v_reservation_id;
   exception when exclusion_violation then raise exception 'NO_AVAILABILITY'; end;
+
   return query select r.id, r.reservation_code, r.guest_name, r.status, r.booking_mode, r.check_in_date, r.check_out_date, r.check_in_at, r.check_out_at from reservations r where r.id = v_reservation_id;
 end;
 $$;
-
-commit;
