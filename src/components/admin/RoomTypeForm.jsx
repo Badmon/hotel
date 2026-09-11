@@ -344,18 +344,6 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
                     Quitar
                   </Button>
                 </div>
-                <Input
-                  id={`image-url-${index}`}
-                  placeholder="O pega una URL / ruta de public/images/rooms/"
-                  value={image.image_url}
-                  onChange={(e) => handleImageChange(index, "image_url", e.target.value)}
-                />
-                <Input
-                  id={`image-alt-${index}`}
-                  placeholder="Texto alternativo"
-                  value={image.alt_text}
-                  onChange={(e) => handleImageChange(index, "alt_text", e.target.value)}
-                />
               </div>
             </div>
           ))}
@@ -363,7 +351,7 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
         <Button type="button" variant="secondary" size="sm" onClick={addImageRow} className="mt-2">
           + Agregar imagen
         </Button>
-        <p className="mt-1 text-xs text-slate-500">Máximo 5MB por imagen.</p>
+        <p className="mt-1 text-xs text-slate-500">Máximo 20MB por imagen.</p>
       </div>
 
       <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">

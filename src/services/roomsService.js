@@ -245,12 +245,12 @@ async function replaceRoomImages(roomTypeId, images) {
 }
 
 const ROOM_IMAGES_BUCKET = "room-images";
-const ROOM_IMAGES_MAX_BYTES = 5 * 1024 * 1024;
+const ROOM_IMAGES_MAX_BYTES = 20 * 1024 * 1024;
 
 /** Sube una foto al bucket de Storage y devuelve su URL pública, lista para guardar en image_url. */
 export async function uploadRoomImage(file) {
   if (file.size > ROOM_IMAGES_MAX_BYTES) {
-    throw new Error("La imagen no debe superar 5MB.");
+    throw new Error("La imagen no debe superar 20MB.");
   }
 
   const extension = file.name.includes(".") ? file.name.split(".").pop() : "jpg";

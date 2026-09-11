@@ -93,7 +93,9 @@ export function RoomTypesAdminPage() {
         <p className="text-sm text-slate-500">
           Estas tarjetas son las mismas que ven los huéspedes en la web pública.
         </p>
-        <Button onClick={() => setEditingRoomType({})}>+ Nuevo tipo de habitación</Button>
+        {status === "success" && (
+          <Button onClick={() => setEditingRoomType({})}>+ Nuevo tipo de habitación</Button>
+        )}
       </div>
 
       {status === "empty" && (
