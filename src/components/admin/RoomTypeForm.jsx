@@ -325,12 +325,26 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
         <div className="space-y-3">
           {images.map((image, index) => (
             <div key={index} className="flex flex-wrap items-start gap-3 rounded-lg border border-slate-200 p-3">
-              {image.image_url && (
-                <img src={image.image_url} alt="" className="h-14 w-14 flex-shrink-0 rounded object-cover" />
+              {uploadingIndex === index ? (
+                <div className="h-14 w-14 flex-shrink-0 animate-pulse rounded bg-slate-200" aria-hidden="true" />
+              ) : (
+                image.image_url && (
+                  <img src={image.image_url} alt="" className="h-14 w-14 flex-shrink-0 rounded object-cover" />
+                )
               )}
               <div className="min-w-[200px] flex-1 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <label className="cursor-pointer rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                  <label
+                    className={`inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 ${
+                      uploadingIndex !== null ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                    }`}
+                  >
+                    {uploadingIndex === index && (
+                      <span
+                        className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+                        aria-hidden="true"
+                      />
+                    )}
                     {uploadingIndex === index ? "Subiendo..." : "Subir imagen"}
                     <input
                       type="file"
