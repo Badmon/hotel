@@ -9,3 +9,10 @@ export function formatCurrency(amount) {
   });
   return `${siteConfig.currency.symbol} ${value}`;
 }
+
+/** Unidad de la tarifa según la modalidad del tipo de habitación: "noche", "hora" o "N horas". */
+export function getRoomRateUnitLabel(roomType) {
+  if (!roomType.allows_hourly) return "noche";
+  const hours = roomType.hourly_duration_hours;
+  return hours === 1 ? "hora" : `${hours} horas`;
+}

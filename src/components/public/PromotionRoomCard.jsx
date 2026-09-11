@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { siteConfig } from "../../config/siteConfig";
-import { formatCurrency } from "../../utils/currency";
+import { formatCurrency, getRoomRateUnitLabel } from "../../utils/currency";
 import { calculateDiscountPercentage } from "../../utils/promotions";
 import { Button } from "../common/Button";
 
@@ -31,11 +31,7 @@ export function PromotionRoomCard({ roomType }) {
           <span className="text-sm text-slate-400 line-through">{formatCurrency(regularPrice)}</span>
           <span className="text-lg font-bold text-amber-700">
             {formatCurrency(roomType.promo_price)}
-            <span className="text-xs font-normal text-slate-500">
-              {isHourly
-                ? ` / ${roomType.hourly_duration_hours} ${roomType.hourly_duration_hours === 1 ? "hora" : "horas"}`
-                : " / noche"}
-            </span>
+            <span className="text-xs font-normal text-slate-500"> x {getRoomRateUnitLabel(roomType)}</span>
           </span>
         </div>
         <p className="mt-1 text-xs text-slate-500">Hasta {roomType.capacity} huéspedes</p>

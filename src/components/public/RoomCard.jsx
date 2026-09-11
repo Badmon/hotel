@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { siteConfig } from "../../config/siteConfig";
-import { formatCurrency } from "../../utils/currency";
+import { formatCurrency, getRoomRateUnitLabel } from "../../utils/currency";
 import { Button } from "../common/Button";
 import { BOOKING_MODE } from "../../constants/bookingMode";
 
@@ -10,8 +10,8 @@ export function RoomCard({ roomType, reservationHref, bookingMode = BOOKING_MODE
 
   const isHourly = bookingMode === BOOKING_MODE.HOURLY;
   const priceLabel = isHourly
-    ? `${formatCurrency(roomType.hourly_price)} por ${roomType.hourly_duration_hours} ${roomType.hourly_duration_hours === 1 ? "hora" : "horas"}`
-    : `Desde ${formatCurrency(roomType.base_price)} / noche`;
+    ? `${formatCurrency(roomType.hourly_price)} x ${getRoomRateUnitLabel(roomType)}`
+    : `Desde ${formatCurrency(roomType.base_price)} x ${getRoomRateUnitLabel(roomType)}`;
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

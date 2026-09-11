@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { fetchRoomTypeById } from "../../services/roomsService";
 import { siteConfig } from "../../config/siteConfig";
-import { formatCurrency } from "../../utils/currency";
+import { formatCurrency, getRoomRateUnitLabel } from "../../utils/currency";
 import { isPromotionActive } from "../../utils/promotions";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
@@ -84,23 +84,17 @@ export function RoomDetailPage() {
             <p className="flex items-baseline gap-2">
               <span className="text-base text-slate-400 line-through">{formatCurrency(roomType.allows_hourly ? roomType.hourly_price : roomType.base_price)}</span>
               <span className="text-2xl font-bold text-amber-700">{formatCurrency(roomType.promo_price)}</span>
-              <span className="text-sm font-normal text-slate-500">
-                {roomType.allows_hourly
-                  ? `/ ${roomType.hourly_duration_hours} ${roomType.hourly_duration_hours === 1 ? "hora" : "horas"}`
-                  : "/ noche"}
-              </span>
+              <span className="text-sm font-normal text-slate-500"> x {getRoomRateUnitLabel(roomType)}</span>
             </p>
           ) : !roomType.allows_hourly ? (
             <p className="text-2xl font-bold text-slate-900">
-              {formatCurrency(roomType.base_price)} <span className="text-sm font-normal text-slate-500">/ noche</span>
+              {formatCurrency(roomType.base_price)} <span className="text-sm font-normal text-slate-500">x {getRoomRateUnitLabel(roomType)}</span>
             </p>
           ) : null}
           {roomType.allows_hourly && (
             <p className="mt-1 text-base font-semibold text-slate-700">
               {formatCurrency(roomType.hourly_price)}{" "}
-              <span className="text-sm font-normal text-slate-500">
-                por {roomType.hourly_duration_hours} {roomType.hourly_duration_hours === 1 ? "hora" : "horas"}
-              </span>
+              <span className="text-sm font-normal text-slate-500">x {getRoomRateUnitLabel(roomType)}</span>
             </p>
           )}
           <Link to={`/habitaciones/${roomType.id}/reservar${reserveQuery ? `?${reserveQuery}` : ""}`}>

@@ -14,7 +14,7 @@ import { CopyableId } from "../../components/common/CopyableId";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
-import { formatCurrency } from "../../utils/currency";
+import { formatCurrency, getRoomRateUnitLabel } from "../../utils/currency";
 import { isPromotionActive } from "../../utils/promotions";
 import { siteConfig } from "../../config/siteConfig";
 
@@ -136,18 +136,15 @@ export function RoomTypesAdminPage() {
                     <p>
                       <span className="mr-2 line-through">{formatCurrency(roomType.allows_hourly ? roomType.hourly_price : roomType.base_price)}</span>
                       <span className="font-semibold text-emerald-700">
-                        {formatCurrency(roomType.promo_price)} {roomType.allows_hourly
-                          ? `/ ${roomType.hourly_duration_hours} ${roomType.hourly_duration_hours === 1 ? "hora" : "horas"}`
-                          : "/ noche"}
+                        {formatCurrency(roomType.promo_price)} x {getRoomRateUnitLabel(roomType)}
                       </span>
                     </p>
                   ) : !roomType.allows_hourly ? (
-                    <p className="font-semibold text-slate-900">{formatCurrency(roomType.base_price)} / noche</p>
+                    <p className="font-semibold text-slate-900">{formatCurrency(roomType.base_price)} x {getRoomRateUnitLabel(roomType)}</p>
                   ) : null}
                   {roomType.allows_hourly && !roomType.on_promotion && (
                     <p className="font-semibold text-violet-700">
-                      {formatCurrency(roomType.hourly_price)} por {roomType.hourly_duration_hours}{" "}
-                      {roomType.hourly_duration_hours === 1 ? "hora" : "horas"}
+                      {formatCurrency(roomType.hourly_price)} x {getRoomRateUnitLabel(roomType)}
                     </p>
                   )}
                 </div>

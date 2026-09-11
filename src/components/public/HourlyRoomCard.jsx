@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { siteConfig } from "../../config/siteConfig";
-import { formatCurrency } from "../../utils/currency";
+import { formatCurrency, getRoomRateUnitLabel } from "../../utils/currency";
 import { Button } from "../common/Button";
 
 /**
@@ -28,10 +28,7 @@ export function HourlyRoomCard({ roomType, reservationHref }) {
           <h3 className="text-lg font-semibold text-slate-900">{roomType.name}</h3>
           <span className="whitespace-nowrap text-lg font-bold text-violet-700">
             {formatCurrency(roomType.hourly_price)}
-            <span className="text-xs font-normal text-slate-500">
-              {" "}
-              por {roomType.hourly_duration_hours} {roomType.hourly_duration_hours === 1 ? "hora" : "horas"}
-            </span>
+            <span className="text-xs font-normal text-slate-500"> x {getRoomRateUnitLabel(roomType)}</span>
           </span>
         </div>
         <p className="mt-1 line-clamp-2 flex-1 text-sm text-slate-600">{roomType.short_description}</p>
