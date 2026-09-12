@@ -15,12 +15,30 @@ export async function fetchServicesForAdmin() {
   return data ?? [];
 }
 
-/** Servicios de hotel, activos: se muestran automáticamente en la home y en toda habitación. */
+/** Servicios de hotel, activos: se muestran automáticamente en toda habitación. */
 export async function fetchHotelServices() {
   const { data, error } = await supabase
     .from("services")
     .select(SERVICE_COLUMNS)
     .eq("type", SERVICE_TYPE.HOTEL)
+    .eq("active", true)
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+/**
+ * Todos los servicios activos, sin importar el tipo (hotel o por
+ * habitación): para la vista general de "Servicios" de la home. Es una
+ * lectura directa de la tabla (no pasa por room_type_services), así que
+ * cada servicio aparece una sola vez sin importar a cuántos tipos de
+ * habitación esté asignado.
+ */
+export async function fetchAllActiveServices() {
+  const { data, error } = await supabase
+    .from("services")
+    .select(SERVICE_COLUMNS)
     .eq("active", true)
     .order("name", { ascending: true });
 

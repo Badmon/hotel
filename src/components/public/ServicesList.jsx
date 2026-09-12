@@ -1,8 +1,8 @@
-import { useHotelServices } from "../../hooks/useHotelServices";
+import { useAllActiveServices } from "../../hooks/useAllActiveServices";
 import { ServiceIcon } from "../common/ServiceIcon";
 
 export function ServicesList() {
-  const { services, status } = useHotelServices();
+  const { services, status } = useAllActiveServices();
 
   // Sección puramente decorativa: si no hay servicios cargados o falló
   // la consulta, mejor no mostrar nada a que se vea una sección rota o vacía.
@@ -14,7 +14,7 @@ export function ServicesList() {
       <p className="mt-2 max-w-2xl text-slate-600">
         Todo lo que necesitas para una estadía cómoda.
       </p>
-      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(140px,160px))] justify-center gap-4">
         {services.map((service) => (
           <div
             key={service.id}
