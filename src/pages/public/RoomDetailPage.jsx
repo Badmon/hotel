@@ -4,10 +4,12 @@ import { fetchRoomTypeById } from "../../services/roomsService";
 import { siteConfig } from "../../config/siteConfig";
 import { formatCurrency, getRoomRateUnitLabel } from "../../utils/currency";
 import { isPromotionActive } from "../../utils/promotions";
+import { useHotelServices } from "../../hooks/useHotelServices";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
 import { ErrorMessage } from "../../components/common/ErrorMessage";
 import { EmptyState } from "../../components/common/EmptyState";
 import { Button } from "../../components/common/Button";
+import { ServiceIcon } from "../../components/common/ServiceIcon";
 import { RoomImageGallery } from "../../components/public/RoomImageGallery";
 
 export function RoomDetailPage() {
@@ -15,6 +17,7 @@ export function RoomDetailPage() {
   const [searchParams] = useSearchParams();
   const [roomType, setRoomType] = useState(null);
   const [status, setStatus] = useState("loading");
+  const { services: hotelServices } = useHotelServices();
 
   useEffect(() => {
     let isMounted = true;
@@ -62,15 +65,33 @@ export function RoomDetailPage() {
           <p className="mt-2 text-slate-600">Hasta {roomType.capacity} huéspedes</p>
           <p className="mt-4 whitespace-pre-line text-slate-700">{roomType.description || roomType.short_description}</p>
 
-          <h2 className="mt-8 text-lg font-semibold text-slate-900">Servicios del hotel</h2>
-          <ul className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600 sm:grid-cols-3">
-            {siteConfig.services.map((service) => (
-              <li key={service.id} className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
-                {service.label}
-              </li>
-            ))}
-          </ul>
+          {hotelServices.length > 0 && (
+            <>
+              <h2 className="mt-8 text-lg font-semibold text-slate-900">Servicios del hotel</h2>
+              <ul className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600 sm:grid-cols-3">
+                {hotelServices.map((service) => (
+                  <li key={service.id} className="flex items-center gap-2">
+                    <ServiceIcon icon={service.icon} className="h-4 w-4 flex-shrink-0 text-[var(--color-primary)]" />
+                    {service.name}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {roomType.services?.length > 0 && (
+            <>
+              <h2 className="mt-8 text-lg font-semibold text-slate-900">Servicios de la habitación</h2>
+              <ul className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600 sm:grid-cols-3">
+                {roomType.services.map((service) => (
+                  <li key={service.id} className="flex items-center gap-2">
+                    <ServiceIcon icon={service.icon} className="h-4 w-4 flex-shrink-0 text-[var(--color-primary)]" />
+                    {service.name}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
 
         <aside className="h-fit rounded-xl border border-slate-200 p-5 shadow-sm">

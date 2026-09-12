@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
+import { replaceRoomTypeServices } from "./servicesService";
 
 /**
  * Capa de acceso a datos de tipos de habitación, habitaciones e
@@ -10,10 +11,17 @@ const ROOM_TYPE_COLUMNS = `id, name, slug, short_description, description, capac
   allows_hourly, hourly_price, hourly_duration_hours, active,
   on_promotion, promo_price, promo_starts_at, promo_ends_at`;
 
+const ROOM_TYPE_SERVICES_EMBED = `room_type_services ( services ( id, name, type, icon ) )`;
+
+/** Aplana el embed anidado room_type_services -> services en un array plano de servicios. */
+function flattenRoomTypeServices(roomType) {
+  return (roomType.room_type_services ?? []).map((rts) => rts.services).filter(Boolean);
+}
+
 export async function fetchActiveRoomTypesWithImages() {
   const { data, error } = await supabase
     .from("room_types")
-    .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order )`)
+    .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order ), ${ROOM_TYPE_SERVICES_EMBED}`)
     .eq("active", true)
     .order("base_price", { ascending: true });
 
@@ -24,13 +32,14 @@ export async function fetchActiveRoomTypesWithImages() {
     room_images: [...(roomType.room_images ?? [])].sort(
       (a, b) => a.display_order - b.display_order
     ),
+    services: flattenRoomTypeServices(roomType),
   }));
 }
 
 export async function fetchRoomTypeById(id) {
   const { data, error } = await supabase
     .from("room_types")
-    .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order )`)
+    .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order ), ${ROOM_TYPE_SERVICES_EMBED}`)
     .eq("id", id)
     .eq("active", true)
     .maybeSingle();
@@ -43,6 +52,7 @@ export async function fetchRoomTypeById(id) {
     room_images: [...(data.room_images ?? [])].sort(
       (a, b) => a.display_order - b.display_order
     ),
+    services: flattenRoomTypeServices(data),
   };
 }
 
@@ -179,7 +189,7 @@ export async function deleteRoom(roomId) {
 export async function fetchAllRoomTypesForAdmin() {
   const { data, error } = await supabase
     .from("room_types")
-    .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order )`)
+    .select(`${ROOM_TYPE_COLUMNS}, room_images ( id, image_url, alt_text, display_order ), ${ROOM_TYPE_SERVICES_EMBED}`)
     .order("created_at", { ascending: true });
 
   if (error) throw error;
@@ -187,19 +197,22 @@ export async function fetchAllRoomTypesForAdmin() {
   return (data ?? []).map((roomType) => ({
     ...roomType,
     room_images: [...(roomType.room_images ?? [])].sort((a, b) => a.display_order - b.display_order),
+    services: flattenRoomTypeServices(roomType),
   }));
 }
 
-export async function createRoomType(roomType, images) {
+export async function createRoomType(roomType, images, serviceIds = []) {
   const { data, error } = await supabase.from("room_types").insert(roomType).select().single();
   if (error) throw error;
   await replaceRoomImages(data.id, images);
+  await replaceRoomTypeServices(data.id, serviceIds);
   return data;
 }
 
-export async function updateRoomType(id, roomType, images) {
+export async function updateRoomType(id, roomType, images, serviceIds = []) {
   const { error } = await supabase.from("room_types").update(roomType).eq("id", id);
   if (error) throw error;
+  await replaceRoomTypeServices(id, serviceIds);
   await replaceRoomImages(id, images);
 }
 

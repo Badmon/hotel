@@ -48,14 +48,14 @@ export function RoomTypesAdminPage() {
     load();
   }, [load]);
 
-  async function handleSave(roomType, images) {
+  async function handleSave(roomType, images, serviceIds) {
     setIsSaving(true);
     setFormError(null);
     try {
       if (editingRoomType?.id) {
-        await updateRoomType(editingRoomType.id, roomType, images);
+        await updateRoomType(editingRoomType.id, roomType, images, serviceIds);
       } else {
-        await createRoomType(roomType, images);
+        await createRoomType(roomType, images, serviceIds);
       }
       setEditingRoomType(null);
       load();

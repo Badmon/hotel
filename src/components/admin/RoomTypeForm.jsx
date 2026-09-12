@@ -1,11 +1,13 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "../common/Input";
 import { DateInput } from "../common/DateInput";
 import { Textarea } from "../common/Textarea";
 import { Button } from "../common/Button";
 import { ErrorMessage } from "../common/ErrorMessage";
+import { ServiceIcon } from "../common/ServiceIcon";
 import { slugify } from "../../utils/slugify";
 import { uploadRoomImage, deleteRoomImageFiles } from "../../services/roomsService";
+import { fetchAssignableServices } from "../../services/servicesService";
 
 const emptyImage = () => ({ image_url: "", alt_text: "" });
 
@@ -39,6 +41,29 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
   const [uploadingIndex, setUploadingIndex] = useState(null);
   const [uploadError, setUploadError] = useState(null);
   const isHourly = bookingType === "hourly";
+
+  const [assignableServices, setAssignableServices] = useState([]);
+  const [selectedServiceIds, setSelectedServiceIds] = useState(
+    () => new Set(initialValues?.services?.map((service) => service.id) ?? [])
+  );
+
+  useEffect(() => {
+    fetchAssignableServices()
+      .then(setAssignableServices)
+      .catch(() => {
+        // No bloquea el formulario: si falla, simplemente no aparecen
+        // servicios para asignar (se puede reintentar reabriendo el modal).
+      });
+  }, []);
+
+  function toggleService(serviceId) {
+    setSelectedServiceIds((current) => {
+      const next = new Set(current);
+      if (next.has(serviceId)) next.delete(serviceId);
+      else next.add(serviceId);
+      return next;
+    });
+  }
 
   // Archivos subidos al bucket durante esta sesión de edición, para
   // poder limpiarlos si se reemplazan antes de guardar o si se
@@ -157,7 +182,7 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
       deleteRoomImageFiles(orphanedUploads);
     }
 
-    onSubmit(roomType, cleanImages);
+    onSubmit(roomType, cleanImages, Array.from(selectedServiceIds));
   }
 
   return (
@@ -318,6 +343,26 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
           Visible en el sitio (activa)
         </label>
       </div>
+
+      {assignableServices.length > 0 && (
+        <div className="rounded-lg border border-slate-200 p-4">
+          <p className="text-sm font-medium text-slate-700">Servicios de esta habitación</p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {assignableServices.map((service) => (
+              <label key={service.id} className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={selectedServiceIds.has(service.id)}
+                  onChange={() => toggleService(service.id)}
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+                <ServiceIcon icon={service.icon} className="h-4 w-4 flex-shrink-0 text-slate-500" />
+                {service.name}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div>
         <p className="mb-2 text-sm font-medium text-slate-700">Imágenes</p>

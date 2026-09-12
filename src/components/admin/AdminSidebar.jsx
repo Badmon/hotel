@@ -5,6 +5,7 @@ const LINKS = [
   { to: "/admin", label: "Dashboard", end: true },
   { to: "/admin/reservations", label: "Reservas" },
   { to: "/admin/room-types", label: "Tipos de habitación" },
+  { to: "/admin/services", label: "Servicios" },
   { to: "/admin/rooms", label: "Estado de habitaciones" },
   { to: "/admin/calendar", label: "Calendario" },
 ];

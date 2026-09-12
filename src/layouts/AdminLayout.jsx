@@ -12,6 +12,7 @@ const PAGE_TITLES = [
   { pattern: /^\/admin\/reservations\/?$/, title: "Reservas" },
   { pattern: /^\/admin\/reservations\/.+/, title: "Detalle de reserva" },
   { pattern: /^\/admin\/room-types\/?$/, title: "Tipos de habitación" },
+  { pattern: /^\/admin\/services\/?$/, title: "Servicios" },
   { pattern: /^\/admin\/rooms\/?$/, title: "Habitaciones" },
   { pattern: /^\/admin\/calendar\/?$/, title: "Calendario" },
 ];

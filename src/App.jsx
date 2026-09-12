@@ -18,6 +18,7 @@ import { ReservationsListPage } from "./pages/admin/ReservationsListPage";
 import { ReservationDetailPage } from "./pages/admin/ReservationDetailPage";
 import { RoomsAdminPage } from "./pages/admin/RoomsAdminPage";
 import { RoomTypesAdminPage } from "./pages/admin/RoomTypesAdminPage";
+import { ServicesAdminPage } from "./pages/admin/ServicesAdminPage";
 import { CalendarPage } from "./pages/admin/CalendarPage";
 
 export default function App() {
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="reservations" element={<ReservationsListPage />} />
             <Route path="reservations/:id" element={<ReservationDetailPage />} />
             <Route path="room-types" element={<RoomTypesAdminPage />} />
+            <Route path="services" element={<ServicesAdminPage />} />
             <Route path="rooms" element={<RoomsAdminPage />} />
             <Route path="calendar" element={<CalendarPage />} />
           </Route>

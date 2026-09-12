@@ -61,15 +61,6 @@ export const siteConfig = {
     directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=-12.1710662,-76.9798348",
   },
 
-  services: [
-    { id: "wifi", label: "WiFi gratis", icon: "wifi" },
-    { id: "parking", label: "Estacionamiento", icon: "parking" },
-    { id: "hot-water", label: "Agua caliente", icon: "droplet" },
-    { id: "tv", label: "TV por cable", icon: "tv" },
-    { id: "breakfast", label: "Desayuno incluido", icon: "coffee" },
-    { id: "reception", label: "Recepción 24 horas", icon: "concierge" },
-  ],
-
   nav: [
     { label: "Inicio", href: "/" },
     { label: "Habitaciones", href: "/habitaciones" },
