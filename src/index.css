@@ -28,3 +28,12 @@ body {
   color: var(--color-text);
   background-color: var(--color-background);
 }
+
+/* Evita que el texto del navbar y del hero (logo, enlaces, título,
+   descripción, botones) se resalte al arrastrar el mouse, sin afectar
+   que sigan siendo clickeables. */
+.navbar-no-select,
+.hero-no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}

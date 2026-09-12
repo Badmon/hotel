@@ -19,7 +19,7 @@ export function MainBanner() {
           aria-hidden="true"
           className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_50%,rgba(15,23,42,0.55),rgba(15,23,42,0)_70%)]"
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
+        <div className="hero-no-select absolute inset-0 flex flex-col items-center justify-center px-4 text-center text-white">
           <h1 className="text-3xl font-bold tracking-tight [text-shadow:0_2px_16px_rgba(0,0,0,0.6)] sm:text-5xl">
             {siteConfig.hotel.name}
           </h1>

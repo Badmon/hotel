@@ -6,7 +6,7 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header className="navbar-no-select sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4" aria-label="Principal">
         <Link to="/" className="flex items-center gap-2 font-semibold text-slate-900">
           <img src={siteConfig.images.logo} alt={siteConfig.hotel.name} className="h-9 w-9" />
