@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabaseClient";
 import { replaceRoomTypeServices } from "./servicesService";
+import { compressImage } from "../utils/imageCompression";
 
 /**
  * Capa de acceso a datos de tipos de habitación, habitaciones e
@@ -266,11 +267,13 @@ export async function uploadRoomImage(file) {
     throw new Error("La imagen no debe superar 20MB.");
   }
 
-  const extension = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
+  const image = await compressImage(file);
+  const extension = image.name.includes(".") ? image.name.split(".").pop() : "jpg";
   const path = `${crypto.randomUUID()}.${extension}`;
 
-  const { error } = await supabase.storage.from(ROOM_IMAGES_BUCKET).upload(path, file, {
+  const { error } = await supabase.storage.from(ROOM_IMAGES_BUCKET).upload(path, image, {
     cacheControl: "3600",
+    contentType: image.type || undefined,
   });
   if (error) throw error;
 

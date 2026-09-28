@@ -14,7 +14,8 @@ const emptyImage = () => ({ image_url: "", alt_text: "" });
 /**
  * Formulario de alta/edición de un tipo de habitación. No llama a
  * Supabase directamente: delega en onSubmit(roomType, images), que en
- * la página admin decide si crea o actualiza.
+ * la página admin decide si crea o actualiza, y debe resolver a true si
+ * guardó (lo usa la limpieza de fotos subidas y no guardadas).
  */
 export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }) {
   const isEditing = Boolean(initialValues?.id);
@@ -65,11 +66,22 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
     });
   }
 
-  // Archivos subidos al bucket durante esta sesión de edición, para
-  // poder limpiarlos si se reemplazan antes de guardar o si se
-  // cancela el formulario — de lo contrario quedarían huérfanos en
-  // Storage sin que ninguna fila los referencie nunca.
+  // Archivos subidos al bucket durante esta sesión de edición. Al
+  // desmontarse el formulario (Cancelar, X, clic fuera, Escape o tras
+  // guardar) se borran los que no quedaron guardados; si no, quedarían
+  // huérfanos en Storage sin que ninguna fila los referencie.
   const sessionUploadedUrls = useRef([]);
+  // URLs enviadas a guardar. Se marcan antes de llamar a onSubmit porque,
+  // si el guardado sale bien, la página cierra el modal (y desmonta este
+  // formulario) antes de que la promesa de onSubmit se resuelva aquí.
+  const savedUrls = useRef(new Set());
+
+  useEffect(() => {
+    return () => {
+      const unsaved = sessionUploadedUrls.current.filter((url) => !savedUrls.current.has(url));
+      if (unsaved.length > 0) deleteRoomImageFiles(unsaved);
+    };
+  }, []);
 
   function handleImageChange(index, field, value) {
     setImages((current) => current.map((img, i) => (i === index ? { ...img, [field]: value } : img)));
@@ -96,15 +108,6 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
 
   function removeImageRow(index) {
     setImages((current) => current.filter((_, i) => i !== index));
-  }
-
-  function handleCancel() {
-    // Nada de lo subido en esta sesión llegó a guardarse: se limpia
-    // del bucket para no dejar archivos huérfanos.
-    if (sessionUploadedUrls.current.length > 0) {
-      deleteRoomImageFiles(sessionUploadedUrls.current);
-    }
-    onCancel();
   }
 
   function validate() {
@@ -145,7 +148,7 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
     return newErrors;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
@@ -180,9 +183,14 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
     const orphanedUploads = sessionUploadedUrls.current.filter((url) => !keptUrls.has(url));
     if (orphanedUploads.length > 0) {
       deleteRoomImageFiles(orphanedUploads);
+      sessionUploadedUrls.current = sessionUploadedUrls.current.filter((url) => keptUrls.has(url));
     }
 
-    onSubmit(roomType, cleanImages, Array.from(selectedServiceIds));
+    savedUrls.current = keptUrls;
+    const saved = await onSubmit(roomType, cleanImages, Array.from(selectedServiceIds));
+    // Si falló, el formulario sigue abierto: esas fotos vuelven a contar
+    // como no guardadas por si luego se cierra sin reintentar.
+    if (!saved) savedUrls.current = new Set();
   }
 
   return (
@@ -414,7 +422,7 @@ export function RoomTypeForm({ initialValues, onSubmit, onCancel, isSubmitting }
       </div>
 
       <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
-        <Button type="button" variant="ghost" onClick={handleCancel} disabled={isSubmitting}>
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
           Cancelar
         </Button>
         <Button type="submit" isLoading={isSubmitting}>

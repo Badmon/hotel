@@ -59,12 +59,14 @@ export function RoomTypesAdminPage() {
       }
       setEditingRoomType(null);
       load();
+      return true;
     } catch (err) {
       setFormError(
         err.message?.includes("duplicate key")
           ? "Ya existe un tipo de habitación con ese slug. Usa uno distinto."
           : err.message || "No fue posible guardar los cambios."
       );
+      return false;
     } finally {
       setIsSaving(false);
     }
