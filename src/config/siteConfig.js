@@ -13,7 +13,7 @@
 
 export const siteConfig = {
   hotel: {
-    name: "Smart Love",
+    name: "Hotel Love",
     slogan: "Descansa, desconecta y disfruta tu estadía",
     description:
       "Un hotel pensado para que tu descanso sea simple: habitaciones cómodas, atención cercana y una ubicación conveniente.",
@@ -21,7 +21,7 @@ export const siteConfig = {
     // Solo dígitos, con código de país, sin signos ni espacios (formato wa.me)
     whatsapp: "51999999999",
     email: "reservas@hoteldemo.com",
-    address: "Sector Alipio Ponce Mz F lote 6, 15058 San Juan de Miraflores, Perú",
+    address: "Av. Gral. Juan Antonio Álvarez de Arenales 425, Jesús María 15072",
     schedule: "Recepción disponible las 24 horas",
   },
 
@@ -43,7 +43,7 @@ export const siteConfig = {
 
   images: {
     logo: "/images/branding/logo.svg",
-    banner: "/images/hotel/hotel-home.jpg",
+    banner: "/images/hotel/hotel-background.jpg",
     about: "/images/hotel/about.svg",
     location: "/images/hotel/location.svg",
     placeholderRoom: "/images/rooms/placeholder.svg",
@@ -55,10 +55,11 @@ export const siteConfig = {
   },
 
   maps: {
-    // Coordenadas de "Hostal cochera jacuzzi" (Smart Love), obtenidas
-    // del enlace corto de Google Maps compartido para el hotel.
-    embedUrl: "https://www.google.com/maps?q=-12.1710662,-76.9798348&z=17&output=embed",
-    directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=-12.1710662,-76.9798348",
+    // Búsqueda por la dirección del hotel (Av. Arenales 425, Jesús María).
+    embedUrl:
+      "https://www.google.com/maps?q=Av.+Gral.+Juan+Antonio+%C3%81lvarez+de+Arenales+425,+Jes%C3%BAs+Mar%C3%ADa+15072,+Per%C3%BA&z=17&output=embed",
+    directionsUrl:
+      "https://www.google.com/maps/dir/?api=1&destination=Av.+Gral.+Juan+Antonio+%C3%81lvarez+de+Arenales+425,+Jes%C3%BAs+Mar%C3%ADa+15072,+Per%C3%BA",
   },
 
   nav: [
